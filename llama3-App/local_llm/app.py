@@ -2,6 +2,7 @@ import streamlit as st
 import ollama
 import questions
 
+print('test')
 st.title("Wer wird Millionär")
 questions = questions.fetching()
 

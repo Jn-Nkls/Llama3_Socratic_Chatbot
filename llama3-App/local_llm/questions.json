@@ -1,362 +1,434 @@
 [
     {
         "type": "multiple",
-        "difficulty": "easy",
-        "category": "Entertainment: Music",
-        "question": "Who is the lead singer of the band Coldplay?",
-        "correct_answer": "Chris Martin",
+        "difficulty": "medium",
+        "category": "History",
+        "question": "What was the name of the planned invasion of Japan towards the end of World War II?",
+        "correct_answer": "Operation Downfall",
         "incorrect_answers": [
-            "Chris Isaak",
-            "Chris Wallace",
-            "Chris Connelly"
+            "Operation Boarding Party",
+            "Operation Ironclad",
+            "Operation Aflame"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "easy",
-        "category": "Entertainment: Cartoon &amp; Animations",
-        "question": "In South Park, what is Stan&#039;s surname?",
-        "correct_answer": "Marsh",
+        "category": "History",
+        "question": "During WWII, in 1945, the United States dropped atomic bombs on the two Japanese cities of Hiroshima and what other city?",
+        "correct_answer": "Nagasaki",
         "incorrect_answers": [
-            "Stotch",
-            "Broflovski",
-            "Tweak"
+            "Kawasaki",
+            "Tokyo",
+            "Kagoshima"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Video Games",
+        "question": "What Nationality is D.Va from Overwatch?",
+        "correct_answer": "Korean",
+        "incorrect_answers": [
+            "Japanese",
+            "Chinese",
+            "Vietnamese "
         ]
     },
     {
         "type": "multiple",
         "difficulty": "medium",
-        "category": "Animals",
-        "question": "The now extinct species &quot;Thylacine&quot; was native to where?",
-        "correct_answer": "Tasmania, Australia",
+        "category": "Art",
+        "question": "Which one of these paintings is not by Caspar David Friedrich?",
+        "correct_answer": "The Black Sea",
         "incorrect_answers": [
-            "Baluchistan, Pakistan",
-            "Wallachia, Romania",
-            "Oregon, United States"
+            "The Sea of Ice",
+            "Wanderer above the Sea of Fog",
+            "The Monk by the Sea"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Television",
+        "question": "In the TV series &quot;Person of Interest&quot;, who plays the character &quot;Harold Finch&quot;?",
+        "correct_answer": "Michael Emerson",
+        "incorrect_answers": [
+            "Jim Caviezel",
+            "Taraji P. Henson",
+            "Kevin Chapman"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "Science &amp; Nature",
+        "question": "Which constellation contains the center of the Milky Way?",
+        "correct_answer": "Sagittarius",
+        "incorrect_answers": [
+            "Scorpius",
+            "Ophiuchus",
+            "Capricornus"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Video Games",
+        "question": "Which &quot;Perk-A-Cola&quot; in &quot;Call Of Duty: Zombies&quot; was &quot;reworked&quot; in &quot;Call of Duty: Black Ops II&quot;?",
+        "correct_answer": "Double Tap Root Beer",
+        "incorrect_answers": [
+            "Who&#039;s Who",
+            "Juggernog",
+            "Mule Kick"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Science: Computers",
+        "question": "In computing terms, typically what does CLI stand for?",
+        "correct_answer": "Command Line Interface",
+        "incorrect_answers": [
+            "Common Language Input",
+            "Control Line Interface",
+            "Common Language Interface"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "Science &amp; Nature",
+        "question": "In the Scoville scale, what is the hottest chemical?",
+        "correct_answer": "Resiniferatoxin",
+        "incorrect_answers": [
+            "Capsaicin",
+            "Dihydrocapsaicin",
+            "Tinyatoxin"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "hard",
         "category": "History",
-        "question": "With which Greek philosopher would you associate the phrase, &quot;I know that I know nothing&quot;?",
-        "correct_answer": "Socrates",
+        "question": "In addition to his career as an astrologer and &quot;prophet&quot;, Nostradamus published a 1555 treatise that included a section on what?",
+        "correct_answer": "Making jams and jellies",
         "incorrect_answers": [
-            "Aristotle",
-            "Plato",
-            "Pythagoras"
+            "Teaching parrots to talk",
+            "Cheating at card games",
+            "Digging graves"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Music",
+        "question": "Who is the lead singer of Foo Fighters?",
+        "correct_answer": "Dave Grohl",
+        "incorrect_answers": [
+            "Dave Mustaine",
+            "James Hetfield",
+            "Little Red Riding Hood"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "hard",
+        "category": "Geography",
+        "question": "Which country was NOT formerly part of Yugoslavia?",
+        "correct_answer": "Albania",
+        "incorrect_answers": [
+            "Croatia",
+            "Serbia",
+            "Macedonia"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Video Games",
+        "question": "Who is the protagonist of the videogame &quot;Dead Rising 2&quot;?",
+        "correct_answer": "Chuck Greene",
+        "incorrect_answers": [
+            "Nick Ramos",
+            "Frank West",
+            "Katie Greene"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Film",
+        "question": "In &quot;Jurassic World&quot;, what is the name of the dinosaur that is a genetic hybrid?",
+        "correct_answer": "Indominus Rex",
+        "incorrect_answers": [
+            "Mosasaurus",
+            "Pteranodon",
+            "Tyrannosaurus Rex "
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Celebrities",
+        "question": "When was Elvis Presley born?",
+        "correct_answer": "January 8, 1935",
+        "incorrect_answers": [
+            "December 13, 1931",
+            "July 18, 1940",
+            "April 17, 1938"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "History",
+        "question": "When did L. L. Zamenhof first publish &quot;Unua Libro&quot;, the first publication describing his international language Esperanto?",
+        "correct_answer": "1887",
+        "incorrect_answers": [
+            "1897",
+            "1905",
+            "1915"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Books",
+        "question": "What is the title of the first Sherlock Holmes book by Arthur Conan Doyle?",
+        "correct_answer": "A Study in Scarlet",
+        "incorrect_answers": [
+            "The Sign of the Four",
+            "A Case of Identity",
+            "The Doings of Raffles Haw"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Film",
+        "question": "Ed Koch, the Mayor of New York in 1984, played himself in which Muppets movie?",
+        "correct_answer": "The Muppets Take Manhattan",
+        "incorrect_answers": [
+            "The Great Muppet Caper",
+            "The Muppet Christmas Carol",
+            "The Muppet Movie"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "General Knowledge",
+        "question": "What are the three starter Pokemon available in Pokemon Black and White?",
+        "correct_answer": "Snivy, Tepig, Oshawott",
+        "incorrect_answers": [
+            "Snivy, Fennekin, Froakie",
+            "Chespin, Tepig, Froakie",
+            "Chespin, Fennekin, Oshawott"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "History",
+        "question": "Who was the first president of the United States?",
+        "correct_answer": "George Washington",
+        "incorrect_answers": [
+            "James Madison",
+            "Thomas Jefferson",
+            "James K. Polk"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Music",
+        "question": "Which song in Drake&#039;s &quot;Views&quot; features Future?",
+        "correct_answer": "Grammys",
+        "incorrect_answers": [
+            "Too Good",
+            "Faithful",
+            "Pop Style"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Animals",
+        "question": "What is the collective noun for a group of crows?",
+        "correct_answer": "Murder",
+        "incorrect_answers": [
+            "Pack",
+            "Gaggle",
+            "Herd"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Video Games",
+        "question": "What is the lowest amount of max health you can have in Team Fortress 2?",
+        "correct_answer": "70",
+        "incorrect_answers": [
+            "100",
+            "50",
+            "95"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "General Knowledge",
+        "question": "Amsterdam Centraal station is twinned with what station?",
+        "correct_answer": "London Liverpool Street",
+        "incorrect_answers": [
+            "Frankfurt (Main) Hauptbahnhof",
+            "Paris Gare du Nord",
+            "Brussels Midi"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "Entertainment: Film",
+        "question": "Which of the following films was directed by Ivan Reitman, written by Gary Ross, featured Kevin Kline, and was released in 1993?",
+        "correct_answer": "Dave",
+        "incorrect_answers": [
+            "John",
+            "Will",
+            "Carl"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "General Knowledge",
+        "question": "The Quadrangularis Reversum is best described as which of the following?",
+        "correct_answer": "A percussion instrument",
+        "incorrect_answers": [
+            "A building in Oxford University",
+            "A chess move",
+            "A geometric theorem"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "General Knowledge",
+        "question": "Disney&#039;s Haunted Mansion is home to a trio of Hitchhiking Ghosts. Which of these is NOT one of them?",
+        "correct_answer": "Harry",
+        "incorrect_answers": [
+            "Gus",
+            "Phineas",
+            "Ezra"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
         "category": "Entertainment: Television",
-        "question": "What was the UK &quot;Who Wants to be a Millionaire?&quot; cheating scandal known as?",
-        "correct_answer": "Major Fraud",
+        "question": "In the show &quot;The Office&quot; who does Michael Scott eventually end up with?",
+        "correct_answer": "Holly Flax",
         "incorrect_answers": [
-            "Ingram Cheater",
-            "Coughing Major",
-            "Millionaire Crime"
+            "Angela Martin",
+            "Jan Levinson",
+            "Pam Beesly"
         ]
     },
     {
         "type": "multiple",
-        "difficulty": "easy",
-        "category": "Entertainment: Video Games",
-        "question": "What was the name of the cancelled sequel of Team Fortress?",
-        "correct_answer": "Team Fortress 2: Brotherhood of Arms",
+        "difficulty": "medium",
+        "category": "History",
+        "question": "On what day did Germany invade Poland?",
+        "correct_answer": "September 1, 1939",
         "incorrect_answers": [
-            "Team Fortress 2: Desert Mercenaries",
-            "Team Fortress 2: Operation Gear Grinder",
-            "Team Fortress 2: Return to Classic"
+            "December 7, 1941",
+            "June 22, 1941",
+            "July 7, 1937"
         ]
     },
     {
         "type": "multiple",
-        "difficulty": "hard",
+        "difficulty": "medium",
         "category": "Entertainment: Music",
-        "question": "What song originally performed by The Bee Gees in 1978 had a cover version by Steps 20 years later?",
-        "correct_answer": "Tragedy",
+        "question": "Who was the guitarist in the band &quot;The Doors&quot;?",
+        "correct_answer": "Robby Krieger",
         "incorrect_answers": [
-            "Night Fever",
-            "Stayin&#039; Alive",
-            "You Should Be Dancing"
+            "Eric Clapton",
+            "John Densmore",
+            "Jimi Hendrix"
         ]
     },
     {
         "type": "multiple",
-        "difficulty": "hard",
-        "category": "Entertainment: Video Games",
-        "question": "Which of the following commercial vehicles from Grand Theft Auto IV did NOT reappear in Grand Theft Auto V?",
-        "correct_answer": "Steed",
-        "incorrect_answers": [
-            "Mule",
-            "Benson",
-            "Pony"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
+        "difficulty": "medium",
         "category": "Science: Computers",
-        "question": "When Gmail first launched, how much storage did it provide for your email?",
-        "correct_answer": "1GB",
+        "question": "Whistler was the codename of this Microsoft Operating System.",
+        "correct_answer": "Windows XP",
         "incorrect_answers": [
-            "512MB",
-            "5GB",
-            "Unlimited"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Science &amp; Nature",
-        "question": "What was the first living creature in space?",
-        "correct_answer": "Fruit Flies ",
-        "incorrect_answers": [
-            "Monkey",
-            "Dog",
-            "Mouse"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Science: Mathematics",
-        "question": "What is the Roman numeral for 500?",
-        "correct_answer": "D",
-        "incorrect_answers": [
-            "L",
-            "C",
-            "X"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "Geography",
-        "question": "Which country is the Taedong River in?",
-        "correct_answer": "North Korea",
-        "incorrect_answers": [
-            "South Korea",
-            "Japan",
-            "China"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Music",
-        "question": "Which of the following guitarists recorded an album as a member of the Red Hot Chili Peppers?",
-        "correct_answer": "Dave Navarro",
-        "incorrect_answers": [
-            "Tom Morello ",
-            "Billy Corgan",
-            "Ed O&#039;Brien"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Video Games",
-        "question": "Which stage was planned to be a part of &quot;Sonic the Hedgehog 2&quot;, but was scrapped during development?",
-        "correct_answer": "Genocide City Zone",
-        "incorrect_answers": [
-            "Stardust Speedway Zone",
-            "Sky High Zone ",
-            "Clockwork Zone"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Video Games",
-        "question": "What is the full name of the protagonist from the SNES game Clock Tower?",
-        "correct_answer": "Jennifer Simpson",
-        "incorrect_answers": [
-            "Jennifer Barrows",
-            "Jennifer Cartwright",
-            "Jennifer Maxwell"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Sports",
-        "question": "Which nation hosted the FIFA World Cup in 2006?",
-        "correct_answer": "Germany",
-        "incorrect_answers": [
-            "United Kingdom",
-            "Brazil",
-            "South Africa"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
-        "category": "Entertainment: Film",
-        "question": "What name did Tom Hanks give to his volleyball companion in the film `Cast Away`?",
-        "correct_answer": "Wilson",
-        "incorrect_answers": [
-            "Friday",
-            "Jones",
-            "Billy"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
-        "category": "Entertainment: Film",
-        "question": "What was the first feature-length computer-animated movie?",
-        "correct_answer": "Toy Story",
-        "incorrect_answers": [
-            "Tron",
-            "Lion king",
-            "101 Dalmatians"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "General Knowledge",
-        "question": "What is the last letter of the Greek alphabet?",
-        "correct_answer": "Omega",
-        "incorrect_answers": [
-            "Mu",
-            "Epsilon",
-            "Kappa"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "General Knowledge",
-        "question": "In 2013 how much money was lost by Nigerian scams?",
-        "correct_answer": "$12.7 Billion",
-        "incorrect_answers": [
-            "$95 Million",
-            "$956 Million",
-            "$2.7 Billion"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "Entertainment: Video Games",
-        "question": "In &quot;Magicka&quot;, which two elements are combined to cast the spell, &quot;Nullify&quot;?",
-        "correct_answer": "Arcane + Shield",
-        "incorrect_answers": [
-            "Lightning + Shield",
-            "Lightning + Life",
-            "Arcane + Life"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
-        "category": "Geography",
-        "question": "What state is the largest state of the United States of America?",
-        "correct_answer": "Alaska",
-        "incorrect_answers": [
-            "California",
-            "Texas",
-            "Washington"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Video Games",
-        "question": "In &quot;Call Of Duty: Zombies&quot;, completing which map&#039;s main easter egg will reward you with the achievement, &quot;Little Lost Girl&quot;?",
-        "correct_answer": "Origins",
-        "incorrect_answers": [
-            "Revelations",
-            "Moon",
-            "Tranzit"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
-        "category": "Entertainment: Music",
-        "question": "Which of the following is not a studio album by the band Pink Floyd?",
-        "correct_answer": "Moving Pictures",
-        "incorrect_answers": [
-            "The Dark Side of the Moon",
-            "Wish You Were Here",
-            "Animals"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
-        "category": "General Knowledge",
-        "question": "What is the name of the company in Lethal Company?",
-        "correct_answer": "The Company",
-        "incorrect_answers": [
-            "Planet Scrap Co.",
-            "Lethal Robotics",
-            "Gordian Shipping Co."
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "General Knowledge",
-        "question": "What is the Portuguese word for &quot;Brazil&quot;?",
-        "correct_answer": "Brasil",
-        "incorrect_answers": [
-            "Brazil",
-            "Brasilia",
-            "Bras&iacute;l"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Music",
-        "question": "Which band released songs such as &quot;Electric Feel&quot;, &quot;Kids&quot;, and &quot;Time to Pretend&quot;?",
-        "correct_answer": "MGMT",
-        "incorrect_answers": [
-            "Passion Pit",
-            "Phoenix",
-            "Franz Ferdinand"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Video Games",
-        "question": "In &quot;Call Of Duty: Zombies&quot;, which map introduced the perk &quot;PhD Flopper&quot;?",
-        "correct_answer": "Ascension",
-        "incorrect_answers": [
-            "Moon",
-            "Call Of The Dead",
-            "Die Rise"
+            "Windows 2000",
+            "Windows 7",
+            "Windows 95"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "medium",
         "category": "Entertainment: Japanese Anime &amp; Manga",
-        "question": "In &quot;Puella Magi Madoka Magica&quot;, what is the first name of Madoka&#039;s younger brother?",
-        "correct_answer": "Tatsuya",
+        "question": "In Dragon Ball Z, who was the first character to go Super Saiyan 2?",
+        "correct_answer": "Gohan",
         "incorrect_answers": [
-            "Montoya",
-            "Tomohisa",
-            "Minato"
+            "Goku",
+            "Vegeta",
+            "Trunks"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Video Games",
+        "question": "Which psychopath(s) in Dead Rising 1 gave you the small chainsaw?",
+        "correct_answer": "Adam the Clown",
+        "incorrect_answers": [
+            "Cliff Hudson",
+            "The convicts",
+            "Larry the butcher"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "medium",
-        "category": "Entertainment: Video Games",
-        "question": "Just Cause 2 was mainly set in what fictional Southeast Asian island country?",
-        "correct_answer": "Panau",
+        "category": "Entertainment: Television",
+        "question": "In the Sci-Fi television show Doctor Who, who plays the Tenth Doctor?",
+        "correct_answer": "David Tennant",
         "incorrect_answers": [
-            "Davao",
-            "Macau",
-            "Palau"
+            "William Hartnell",
+            "Peter Capaldi",
+            "Peter Davison"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Entertainment: Television",
+        "question": "Out of the 3 Tots in Tots TV, who speaks French in the UK Version and Spanish in the US Version?",
+        "correct_answer": "Tilly",
+        "incorrect_answers": [
+            "Tom",
+            "Tiny",
+            "None of the Above"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "Politics",
+        "question": "Which of these was an official candidate in the 2017 British General Election?",
+        "correct_answer": "Lord Buckethead",
+        "incorrect_answers": [
+            "James Francis",
+            "Robert Wimbledon",
+            "Sir Crumpetsby"
         ]
     },
     {
@@ -373,230 +445,158 @@
     },
     {
         "type": "multiple",
-        "difficulty": "hard",
-        "category": "Entertainment: Japanese Anime &amp; Manga",
-        "question": "Akatsuki&#039;s subclass in &quot;Log Horizon&quot; is what?",
-        "correct_answer": " Tracker",
-        "incorrect_answers": [
-            "Assassin",
-            "Scribe",
-            "Apprentice"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "General Knowledge",
-        "question": "If someone said &quot;you are olid&quot;, what would they mean?",
-        "correct_answer": "You smell extremely unpleasant.",
-        "incorrect_answers": [
-            "You are out of shape/weak.",
-            "Your appearance is repulsive.",
-            "You are incomprehensible/an idiot."
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Entertainment: Film",
-        "question": "Which actor and martial artist starred as Colonel Guile in the 1994 action film adaptation of Street Fighter?",
-        "correct_answer": "Jean-Claude Van Damme",
-        "incorrect_answers": [
-            "Chuck Norris",
-            "Steven Seagal",
-            "Scott Adkins"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "History",
-        "question": "What year did the Vietnam War end?",
-        "correct_answer": "1975",
-        "incorrect_answers": [
-            "1978",
-            "1967",
-            "1969"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "Entertainment: Video Games",
-        "question": "When was Pokemon GO released in North America?",
-        "correct_answer": "July 6th, 2016",
-        "incorrect_answers": [
-            "June 5th, 2016",
-            "May 24th, 2016",
-            "January 2nd, 2017"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "History",
-        "question": "Who was the first president born in the independent United States?",
-        "correct_answer": "Martin Van Buren",
-        "incorrect_answers": [
-            "John Adams",
-            "George Washington",
-            "James Monroe "
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "History",
-        "question": "The fraudelent doctor John R. Brinkley acummulated great fame and wealth in the early 1900s offering what service?",
-        "correct_answer": "Goat testicles transplant",
-        "incorrect_answers": [
-            "Pig blood transfusion",
-            "Cow liver transplant",
-            "Turkey breast implants"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "History",
-        "question": "Which U.S. President was famously &#039;attacked&#039; by a swimming rabbit?",
-        "correct_answer": "Jimmy Carter",
-        "incorrect_answers": [
-            "Ronald Reagan",
-            "Lydon B. Johnson",
-            "Gerald Ford"
-        ]
-    },
-    {
-        "type": "multiple",
         "difficulty": "medium",
         "category": "Entertainment: Television",
-        "question": "What episode of &quot;Mr. Bean&quot; saw him trying to prevent people from seeing him naked?",
-        "correct_answer": "Mr. Bean in Room 426",
+        "question": "Who sang the theme song for the TV show &#039;Rawhide&#039;?",
+        "correct_answer": "Frankie Laine",
         "incorrect_answers": [
-            "Mr. Bean Goes to Town",
-            "The Trouble with Mr. Bean",
-            "Back to School Mr. Bean"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "Science &amp; Nature",
-        "question": "All of the following human genetic haplogroup names are shared between Y-chromosome and mitochondrial DNA haplogroups EXCEPT:",
-        "correct_answer": "Haplogroup U",
-        "incorrect_answers": [
-            "Haplogroup L",
-            "Haplogroup T",
-            "Haplogroup J"
+            "Guy Mitchell",
+            " Tennessee Ernie Ford",
+            "Slim Whitman"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "easy",
-        "category": "Entertainment: Video Games",
-        "question": "Which of the following is not a faction in Tom Clancy&#039;s The Division?",
-        "correct_answer": "CDC",
+        "category": "General Knowledge",
+        "question": "Which sign of the zodiac is represented by the Crab?",
+        "correct_answer": "Cancer",
         "incorrect_answers": [
-            "Cleaners",
-            "Last Man Batallion",
-            "Rikers"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "medium",
-        "category": "Science: Computers",
-        "question": "How many cores does the Intel i7-6950X have?",
-        "correct_answer": "10",
-        "incorrect_answers": [
-            "12",
-            "8",
-            "4"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "Science &amp; Nature",
-        "question": "A comet&#039;s gaseous envelope (which creates the tail) is called what?",
-        "correct_answer": "The coma",
-        "incorrect_answers": [
-            "The wake",
-            "The backwash",
-            "The ablative"
+            "Libra",
+            "Virgo",
+            "Sagittarius"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "hard",
         "category": "Entertainment: Music",
-        "question": "How many members are there in the idol group &quot;&micro;&#039;s&quot;?",
-        "correct_answer": "9",
+        "question": "Pete Townshend collaborated with which famous guitarist for an event at Brixton Academy in 1985?",
+        "correct_answer": "David Gilmour",
         "incorrect_answers": [
-            "48",
-            "6",
-            "3"
+            "Jimmy Page",
+            "Mark Knopfler",
+            "Eric Clapton"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "hard",
         "category": "Entertainment: Video Games",
-        "question": "In the video game &quot;Metal Gear Solid&quot;, what did Revolver Ocelot consider the greatest handgun ever made?",
-        "correct_answer": "Colt Single Action Army",
+        "question": "What programming language was used to create the game &quot;Minecraft&quot;?",
+        "correct_answer": "Java",
         "incorrect_answers": [
-            "Colt Python",
-            "Colt M1892",
-            "Colt 1851 Navy Revolver"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "hard",
-        "category": "Entertainment: Video Games",
-        "question": "In Diablo lore, this lesser evil spawned from one of the seven heads of Tathamet, and was known as the Maiden of Anguish.",
-        "correct_answer": "Andariel",
-        "incorrect_answers": [
-            "Valla",
-            "Malthael",
-            "Kashya"
-        ]
-    },
-    {
-        "type": "multiple",
-        "difficulty": "easy",
-        "category": "Science: Gadgets",
-        "question": "Which of the following is not a type of computer mouse?",
-        "correct_answer": "Smoothie mouse",
-        "incorrect_answers": [
-            "Drum mouse",
-            "Trackball mouse",
-            "Optical mouse"
+            "HTML 5",
+            "C++",
+            "Python"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "medium",
-        "category": "Entertainment: Comics",
-        "question": "In Calvin and Hobbes, what is the name of Susie&#039;s stuffed rabbit?",
-        "correct_answer": "Mr. Bun",
+        "category": "General Knowledge",
+        "question": "Which essential condiment is also known as Japanese horseradish?",
+        "correct_answer": "Wasabi ",
         "incorrect_answers": [
-            "Mr. Bunbun",
-            "Mr. Rabbit",
-            "Mr. Hoppy"
+            "Mentsuyu",
+            "Karashi",
+            "Ponzu"
         ]
     },
     {
         "type": "multiple",
         "difficulty": "hard",
-        "category": "Celebrities",
-        "question": "Which school in Surrey, England did Steve Backshall attend?",
-        "correct_answer": "Collingwood College",
+        "category": "Entertainment: Television",
+        "question": "Which of these Nickelodeon game shows aired first?",
+        "correct_answer": "Double Dare",
         "incorrect_answers": [
-            "Tomlinscote School",
-            "Kings International College",
-            "Lyndhurst School"
+            "Nick Arcade",
+            "Finders Keepers",
+            "Nickelodeon Guts"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Vehicles",
+        "question": "Which of the following car models has been badge-engineered (rebadged) the most?",
+        "correct_answer": "Isuzu Trooper",
+        "incorrect_answers": [
+            "Holden Monaro",
+            "Suzuki Swift",
+            "Chevy Camaro"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Sports",
+        "question": "Which team won 2014 FIFA World Cup in Brazil?",
+        "correct_answer": "Germany",
+        "incorrect_answers": [
+            "Argentina",
+            "Brazil",
+            "Netherlands"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Video Games",
+        "question": "What&#039;s the Team Fortress 2 Scout&#039;s city of origin?",
+        "correct_answer": "Boston",
+        "incorrect_answers": [
+            "Sydney",
+            "Detroit",
+            "New York"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "hard",
+        "category": "Entertainment: Music",
+        "question": "What is the British term for a 64th note?",
+        "correct_answer": "Hemidemisemiquaver",
+        "incorrect_answers": [
+            "Semihemidemisemiquaver",
+            "Semiquaver",
+            "Demisemiquaver"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Music",
+        "question": "Who performed &quot;I Took A Pill In Ibiza&quot;?",
+        "correct_answer": "Mike Posner",
+        "incorrect_answers": [
+            "Avicii",
+            "Robbie Williams",
+            "Harry Styles"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "medium",
+        "category": "Science &amp; Nature",
+        "question": "When was the first mammal successfully cloned?",
+        "correct_answer": "1996",
+        "incorrect_answers": [
+            "2009",
+            "1999",
+            "1985"
+        ]
+    },
+    {
+        "type": "multiple",
+        "difficulty": "easy",
+        "category": "Entertainment: Books",
+        "question": "What was the name of Captain Nemo&#039;s submarine in &quot;20,000 Leagues Under the Sea&quot;?",
+        "correct_answer": "The Nautilus",
+        "incorrect_answers": [
+            "The Neptune",
+            "The Poseidon  ",
+            "The Atlantis"
         ]
     }
 ]
