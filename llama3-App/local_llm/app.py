@@ -45,7 +45,7 @@ if st.session_state.start == 1:
                       ' they immeadetly loose. After the tenth question the player wins. Each question is multiple '
                       'choice and is inside the array at the end of this message. Only show the question and the 4 answers '
                       'provided in the list and not the object itself. For each question you can provide one tip if asked '
-                      'to. Do small talk with the user. Try building up tension before giving up the solution. Privide an explanation'
+                      'to. Do small talk with the user after one round. Try building up tension before giving up the solution. Privide an explanation'
                       ' of the gamerules at the beginning and explain that they have a hint! Here are the questions:'
                       + str(questions)
                       )
