@@ -33,7 +33,6 @@ def read_questions():
 
 def fetching():
     if check_internet_connection():
-        print('online')
         response = requests.get(url)
 
         if response.status_code == 200:
@@ -49,7 +48,6 @@ def fetching():
         else:
             print(f"Failed to retrieve questions. Status code: {response.status_code}")
     else:
-        print('offline')
         if os.stat('questions.json').st_size == 0:
             print('No questions available')
         else:
