@@ -1,10 +1,7 @@
 import streamlit as st
 import ollama
-import questions
-
 
 st.title("KI Test")
-questions = questions.fetching()
 
 if "messages" not in st.session_state:
     st.session_state['start'] = 1
