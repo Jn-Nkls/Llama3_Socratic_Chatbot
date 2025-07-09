@@ -2,12 +2,8 @@ import streamlit as st
 import os
 import requests
 
-#import ollama
-
-# You can set this with a secret manager or .env file
 TOGETHER_API_KEY = "0d3acc8557a3a50cfc11fc3ef59f160d55394867e5ca74030d95823122315001"
 
-# LLaMA 3 Model (e.g., via Together AI)
 MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 
 API_URL = "https://api.together.xyz/v1/chat/completions"
@@ -16,7 +12,6 @@ headers = {
     "Authorization": f"Bearer {TOGETHER_API_KEY}",
     "Content-Type": "application/json"
 }
-
 
 st.title("KI Test")
 
