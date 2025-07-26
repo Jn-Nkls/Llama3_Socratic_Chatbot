@@ -1,5 +1,6 @@
 import streamlit as st
 import ollama
+from db import get_relevant_docs
 
 st.title("KI Test")
 
@@ -16,13 +17,24 @@ if st.session_state.start != 1:
             st.chat_message(msg["role"], avatar="🤖").write(msg["content"])
 
 
-def generate_response():
-    response = ollama.chat(model='llama3', stream=True, messages=st.session_state.messages)
-    for partial_resp in response:
-        token = partial_resp["message"]["content"]
-        st.session_state["full_message"] += token
-        yield token
-
+def generate_response(first_message):
+    if not first_message:
+        response = ollama.chat(model='llama3', stream=True, messages=st.session_state.messages)
+        print(response)
+        for partial_resp in response:
+            token = partial_resp["message"]["content"]
+            st.session_state["full_message"] += token
+            yield token
+    else:
+        query = get_relevant_docs(st.session_state.messages[-1]['content'])
+        st.session_state.messages.append(query)
+        response = ollama.chat(model='llama3', stream=True, messages=[{'role': 'user', 'content': st.session_state.messages[-1]['content']}
+                                                                      ])
+        print(response)
+        for partial_resp in response:
+            token = partial_resp["message"]["content"]
+            st.session_state["full_message"] += token
+            yield token
 
 def handle_input(prompt, show):
     if show:
@@ -31,7 +43,7 @@ def handle_input(prompt, show):
     else:
         st.session_state.messages.append({"role": "system", "content": prompt})
     st.session_state["full_message"] = ""
-    st.chat_message("assistant", avatar="🤖").write_stream(generate_response)
+    st.chat_message("assistant", avatar="🤖").write_stream(generate_response(show))
     st.session_state.messages.append({"role": "assistant", "content": st.session_state["full_message"]})
 
 
