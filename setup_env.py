@@ -75,11 +75,49 @@ if "windows" in system:
 else:
     if shutil.which("ollama"):
         print("✓ Ollama already installed")
+        # --- Llama3 7B model pull via Ollama ---
+        print("\nChecking for Llama3 7B model...")
+        if shutil.which("ollama"):
+            try:
+                # Check if already present
+                result = subprocess.run(
+                    ["ollama", "list"],
+                    capture_output=True, text=True
+                )
+                if "llama3:7b" in result.stdout:
+                    print("✓ Llama3 7B model already available.")
+                else:
+                    print("⬇️  Downloading Llama3 7B model (this may take a while)...")
+                    subprocess.run(["ollama", "pull", "llama3:7b"], check=True)
+                    print("✓ Llama3 7B model installed.")
+            except Exception as e:
+                print(f"⚠️ Could not verify or download Llama3 7B model: {e}")
+        else:
+            print("⚠️ Ollama not found; cannot download Llama3 7B automatically.")
     else:
         print("Installing Ollama for Linux...")
         run("curl -fsSL https://ollama.com/install.sh | sh", check=False)
         if shutil.which("ollama"):
             print("✓ Ollama installed")
+            # --- Llama3 7B model pull via Ollama ---
+            print("\nChecking for Llama3 7B model...")
+            if shutil.which("ollama"):
+                try:
+                    # Check if already present
+                    result = subprocess.run(
+                        ["ollama", "list"],
+                        capture_output=True, text=True
+                    )
+                    if "llama3:7b" in result.stdout:
+                        print("✓ Llama3 7B model already available.")
+                    else:
+                        print("⬇️  Downloading Llama3 7B model (this may take a while)...")
+                        subprocess.run(["ollama", "pull", "llama3:7b"], check=True)
+                        print("✓ Llama3 7B model installed.")
+                except Exception as e:
+                    print(f"⚠️ Could not verify or download Llama3 7B model: {e}")
+            else:
+                print("⚠️ Ollama not found; cannot download Llama3 7B automatically.")
         else:
             print("⚠️ Ollama install could not be confirmed. You can install manually: https://ollama.com")
 
