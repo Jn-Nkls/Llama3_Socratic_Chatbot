@@ -130,21 +130,21 @@ else:
         print("✓ Ollama already installed")
         # --- Llama3 7B model pull via Ollama ---
         # --- Verify model presence (works for both new & existing installs) ---
-        print("\nChecking for Llama3 7B model...")
+        print("\nChecking for Llama3 8B model...")
         # NEW: ensure server is running
         if ensure_ollama_server():
             result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
-            if "llama3:7b" in result.stdout:
-                print("✓ Llama3 7B model already available.")
+            if "llama3:8b" in result.stdout:
+                print("✓ Llama3 8B model already available.")
             else:
-                print("⬇️  Pulling Llama3 7B model (this may take a while)…")
-                run("ollama pull llama3:7b", check=False)
+                print("⬇️  Pulling Llama3 8B model (this may take a while)…")
+                run("ollama pull llama3:8b", check=False)
                 # Re-check
                 result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
-                if "llama3:7b" in result.stdout:
-                    print("✓ Llama3 7B model ready.")
+                if "llama3:8b" in result.stdout:
+                    print("✓ Llama3 8B model ready.")
                 else:
-                    print("⚠️ Pull did not complete. Try manually: `ollama pull llama3:7b`")
+                    print("⚠️ Pull did not complete. Try manually: `ollama pull llama3:8b`")
         else:
             print("⚠️ Skipping model pull because the Ollama server isn’t reachable.")
 
@@ -155,21 +155,21 @@ else:
             print("✓ Ollama installed")
             # --- Llama3 7B model pull via Ollama ---
             # --- Verify model presence (works for both new & existing installs) ---
-            print("\nChecking for Llama3 7B model...")
+            print("\nChecking for Llama3 8B model...")
             # NEW: ensure server is running
             if ensure_ollama_server():
                 result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
-                if "llama3:7b" in result.stdout:
-                    print("✓ Llama3 7B model already available.")
+                if "llama3:8b" in result.stdout:
+                    print("✓ Llama3 8B model already available.")
                 else:
-                    print("⬇️  Pulling Llama3 7B model (this may take a while)…")
-                    run("ollama pull llama3:7b", check=False)
+                    print("⬇️  Pulling Llama3 8B model (this may take a while)…")
+                    run("ollama pull llama3:8b", check=False)
                     # Re-check
                     result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
-                    if "llama3:7b" in result.stdout:
-                        print("✓ Llama3 7B model ready.")
+                    if "llama3:8b" in result.stdout:
+                        print("✓ Llama3 8B model ready.")
                     else:
-                        print("⚠️ Pull did not complete. Try manually: `ollama pull llama3:7b`")
+                        print("⚠️ Pull did not complete. Try manually: `ollama pull llama3:8b`")
             else:
                 print("⚠️ Skipping model pull because the Ollama server isn’t reachable.")
 
