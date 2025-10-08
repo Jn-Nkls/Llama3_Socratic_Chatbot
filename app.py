@@ -127,7 +127,7 @@ st.title("Dialogos BNE")
 
 # -------- Model config via env (no UI controls) --------
 MODEL = os.getenv("OLLAMA_MODEL", "llama3:8b")                 # e.g., "llama3", "llama3:8b-instruct"
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.7"))
 TOP_P = float(os.getenv("LLM_TOP_P", "0.9"))
 MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "512"))
