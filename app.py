@@ -14,6 +14,49 @@ folder_path = current_dir.parent / "docs"
 
 st.set_page_config(page_title="Dialogos BNE", page_icon="🦙", layout="centered")
 
+import time
+
+def _ollama_get(url, timeout=5):
+    return requests.get(url, timeout=timeout)
+
+def _ollama_post(url, payload, timeout=120, stream=False):
+    headers = {"Content-Type": "application/json"}
+    return requests.post(url, data=json.dumps(payload), headers=headers, timeout=timeout, stream=stream)
+
+def ollama_ready(base_url: str, model: str) -> bool:
+    """Check server is reachable and model is available."""
+    base = base_url.rstrip('/')
+    try:
+        r = _ollama_get(f"{base}/api/version", timeout=3)
+        if not r.ok:
+            return False
+    except Exception:
+        return False
+
+    # Check model availability; /api/show returns 200 when model exists (and lazily loads metadata)
+    try:
+        r = _ollama_post(f"{base}/api/show", {"name": model}, timeout=10)
+        return r.ok
+    except Exception:
+        return False
+
+def ollama_warmup(base_url: str, model: str, timeout: int = 300) -> bool:
+    """
+    Do a tiny non-streaming /api/generate call to load weights/kv-cache, so streaming chat won’t 503.
+    """
+    base = base_url.rstrip('/')
+    payload = {
+        "model": model,
+        "prompt": " ",
+        "stream": False,
+        "options": {"num_predict": 1}
+    }
+    try:
+        r = _ollama_post(f"{base}/api/generate", payload, timeout=timeout, stream=False)
+        return r.ok
+    except Exception:
+        return False
+
 @st.cache_resource(show_spinner=False)
 def _init_backend():
     # Ensure index exists and models are in-memory
@@ -174,7 +217,23 @@ WICHTIG:
 # -------- Ollama chat helper (streaming) --------
 def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
                 temperature: float = 0.7, top_p: float = 0.9, max_tokens: int = 512, stream: bool = True):
-    url = f"{base_url.rstrip('/')}/api/chat"
+
+    base = base_url.rstrip('/')
+    chat_url = f"{base}/api/chat"
+
+    # Preflight: ensure server+model, then warm once per model
+    warmed_key = f"__ollama_warmed::{model}"
+    if not ollama_ready(base, model):
+        raise RuntimeError(f"Ollama-Server/Modell nicht erreichbar (Server: {base}, Modell: {model}). "
+                           f"Starte den Server mit `ollama serve` und prüfe, ob `{model}` installiert ist (`ollama list`).")
+
+    if not st.session_state.get(warmed_key, False):
+        if ollama_warmup(base, model):
+            st.session_state[warmed_key] = True
+        else:
+            # We still proceed; warmup is best-effort
+            pass
+
     payload = {
         "model": model,
         "messages": ([{"role": "system", "content": system_prompt}] if system_prompt else []) + messages,
@@ -183,29 +242,48 @@ def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
             "temperature": temperature,
             "top_p": top_p,
             "num_predict": max_tokens,
-            "num_gpu": -1
         }
     }
-    headers = {"Content-Type": "application/json"}
-    if stream:
-        with requests.post(url, data=json.dumps(payload), headers=headers, stream=True, timeout=None) as r:
-            r.raise_for_status()
-            for line in r.iter_lines(decode_unicode=True):
-                if not line:
-                    continue
-                try:
-                    obj = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                if "message" in obj and "content" in obj["message"]:
-                    yield obj["message"]["content"]
-                if obj.get("done"):
-                    break
-    else:
-        r = requests.post(url, data=json.dumps(payload), headers=headers, timeout=120)
-        r.raise_for_status()
-        data = r.json()
-        return data.get("message", {}).get("content", "")
+
+    # Retry loop for transient 5xx / connection errors on the initial request
+    max_attempts = 3
+    backoff = 2.0
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            if stream:
+                # Use a finite timeout to avoid hanging forever; streaming yields lines progressively
+                with _ollama_post(chat_url, payload, timeout=300, stream=True) as r:
+                    # If server needs a second chance on first byte, raise_for_status() will trigger retry
+                    r.raise_for_status()
+                    for line in r.iter_lines(decode_unicode=True):
+                        if not line:
+                            continue
+                        try:
+                            obj = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        if "message" in obj and "content" in obj["message"]:
+                            yield obj["message"]["content"]
+                        if obj.get("done"):
+                            break
+                break  # success, exit retry loop
+            else:
+                r = _ollama_post(chat_url, payload, timeout=300, stream=False)
+                r.raise_for_status()
+                data = r.json()
+                return data.get("message", {}).get("content", "")
+        except requests.exceptions.RequestException as e:
+            # Status code if available
+            status = getattr(e.response, "status_code", None)
+            transient = status in (500, 502, 503, 504) or isinstance(e, (requests.exceptions.ConnectionError, requests.exceptions.Timeout))
+            if attempt < max_attempts and transient:
+                time.sleep(backoff)
+                backoff *= 1.5
+                continue
+            # If it’s a non-transient error or we exhausted retries, rethrow
+            raise
 
 # -------- Session state --------
 if "messages" not in st.session_state:
