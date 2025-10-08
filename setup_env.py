@@ -3,82 +3,118 @@ import os
 import platform
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 
-# ----- Utility helpers -----
-def run(cmd):
-    """Run a command and stream output."""
+# ----------------- helpers -----------------
+def run(cmd, check=True):
     print(f"\n>>> {cmd}")
-    subprocess.run(cmd, shell=True, check=True)
+    return subprocess.run(cmd, shell=True, check=check)
 
-def pip_install(pkg):
-    """Install a pip package only if missing."""
+def have_module(mod_name):
     try:
-        __import__(pkg.split("==")[0].split(">=")[0].replace("-", "_"))
-        print(f"✓ {pkg} already installed")
-    except ImportError:
-        print(f"Installing {pkg} ...")
-        run(f"{sys.executable} -m pip install -q {pkg}")
+        __import__(mod_name)
+        return True
+    except Exception:
+        return False
 
-# ----- Step 1: Basic info -----
+def pip_install(pkg_import_name, pip_spec=None):
+    """
+    pkg_import_name: name used in 'import ...'
+    pip_spec: what to pass to pip install (defaults to pkg_import_name)
+    """
+    if pip_spec is None:
+        pip_spec = pkg_import_name
+    if have_module(pkg_import_name.replace("-", "_")):
+        print(f"✓ {pip_spec} already installed")
+        return
+    print(f"Installing {pip_spec} ...")
+    run(f"{sys.executable} -m pip install -q {pip_spec}")
+
+# ----------------- start -----------------
 system = platform.system().lower()
 print(f"Detected OS: {system}")
 
-# Ensure pip itself is ready
-run(f"{sys.executable} -m ensurepip --upgrade")
-run(f"{sys.executable} -m pip install --upgrade pip")
+# Ensure pip exists
+pip_ok = shutil.which("pip") or have_module("pip")
+if not pip_ok and "linux" in system:
+    print("pip not found — installing via apt...")
+    run("sudo apt update")
+    run("sudo apt install -y python3-pip")
+elif not pip_ok and "windows" in system:
+    print("pip not found on Windows. Install Python from https://www.python.org/downloads/ with 'Add to PATH' enabled.")
+    sys.exit(1)
 
-# ----- Step 2: Core dependencies -----
+# Upgrade pip (best effort)
+run(f"{sys.executable} -m pip install --upgrade pip", check=False)
+
+# Core packages (safe on both OSes)
 core_packages = [
-    "streamlit",
-    "langchain",
-    "ollama",
-    "huggingface_hub",
-    "sentence-transformers",
-    "transformers",
-    "accelerate",
-    "faiss-cpu"  # safe fallback; works even with CUDA available
+    ("streamlit", None),
+    ("langchain", None),
+    ("ollama", None),
+    ("huggingface_hub", None),
+    ("sentence_transformers", "sentence-transformers"),
+    ("transformers", None),
+    ("accelerate", None),
+    # FAISS: pick a default that works on most CPUs; you can switch to faiss-gpu later
+    ("faiss", "faiss-cpu"),
 ]
-optional_packages = ["plotly", "pymupdf"]
+optional_packages = [
+    ("plotly", None),
+    ("fitz", "pymupdf"),  # import name is 'fitz'
+]
 
-for pkg in core_packages + optional_packages:
-    pip_install(pkg)
+for mod, spec in core_packages + optional_packages:
+    pip_install(mod, spec)
 
-# ----- Step 3: Ollama install instructions -----
+# Ollama install / check
 if "windows" in system:
-    print("\n⚠️  On Windows, make sure you've installed Ollama manually:")
+    print("\n⚠️  On Windows, install Ollama manually if not present:")
     print("    https://ollama.com/download/windows")
 else:
-    print("\nInstalling Ollama for Linux (if not installed)...")
-    if not shutil.which("ollama"):
-        run("curl -fsSL https://ollama.com/install.sh | sh")
-    else:
+    if shutil.which("ollama"):
         print("✓ Ollama already installed")
+    else:
+        print("Installing Ollama for Linux...")
+        # best-effort install; may require your password
+        run("curl -fsSL https://ollama.com/install.sh | sh", check=False)
+        if shutil.which("ollama"):
+            print("✓ Ollama installed")
+        else:
+            print("⚠️ Ollama install could not be confirmed. You can install manually: https://ollama.com")
 
-# ----- Step 4: Download models if missing -----
+# Model downloads (no external CLI needed)
+print("\nPreparing local Hugging Face models directory...")
 models = {
     "cross-encoder/ms-marco-MiniLM-L-6-v2": "models/cross-encoder-ms-marco-MiniLM-L-6-v2",
-    "sentence-transformers/all-MiniLM-L6-v2": "models/all-MiniLM-L6-v2"
+    "sentence-transformers/all-MiniLM-L6-v2": "models/all-MiniLM-L6-v2",
 }
+pip_install("huggingface_hub")  # ensure available
+from huggingface_hub import snapshot_download
 
-run(f"{sys.executable} -m pip install -q hf-transfer")  # makes hf download available
-for repo, dest in models.items():
+for repo_id, dest in models.items():
     dest_path = Path(dest)
-    if dest_path.exists():
-        print(f"✓ Model already downloaded: {dest}")
-    else:
-        print(f"⬇️  Downloading model: {repo}")
-        run(f"hf download {repo} --local-dir \"{dest}\"")
+    if dest_path.exists() and any(dest_path.iterdir()):
+        print(f"✓ Model already present: {dest}")
+        continue
+    print(f"⬇️  Downloading {repo_id} → {dest}")
+    snapshot_download(
+        repo_id=repo_id,
+        local_dir=dest,
+        local_dir_use_symlinks=False,  # real files instead of symlinks
+        resume_download=True,
+        tqdm_class=None,  # default progress
+    )
+    print(f"✓ Downloaded: {dest}")
 
-# ----- Step 5: Verify CUDA -----
-print("\nChecking CUDA availability in PyTorch:")
-try:
+# Torch + CUDA check (we assume CUDA installed; just report)
+print("\nChecking PyTorch & CUDA:")
+if have_module("torch"):
     import torch
-    print(f"✓ Torch version: {torch.__version__}, CUDA available: {torch.cuda.is_available()}")
-except ImportError:
-    print("⚠️  PyTorch not installed — please install the CUDA version manually from pytorch.org.")
+    print(f"✓ torch {torch.__version__} — CUDA available: {torch.cuda.is_available()}")
+else:
+    print("⚠️ PyTorch not installed via pip. Follow https://pytorch.org/ to install the CUDA build.")
 
-# ----- Step 6: Done -----
-print("\n✅ Environment setup complete!")
-print("You can now run:")
+print("\n✅ Setup complete. You can now run:")
 print("   streamlit run app.py")
