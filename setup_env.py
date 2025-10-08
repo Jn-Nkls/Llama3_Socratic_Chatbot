@@ -57,12 +57,12 @@ core_packages = [
     ("sentence_transformers", "sentence-transformers"),
     ("transformers", None),
     ("accelerate", None),
-    # FAISS: pick a default that works on most CPUs; you can switch to faiss-gpu later
     ("faiss", "faiss-cpu"),
+    ("chromadb", None),  # ✅ NEW: add ChromaDB
 ]
 optional_packages = [
     ("plotly", None),
-    ("fitz", "pymupdf"),  # import name is 'fitz'
+    ("fitz", "pymupdf"),
 ]
 
 for mod, spec in core_packages + optional_packages:
@@ -77,20 +77,19 @@ else:
         print("✓ Ollama already installed")
     else:
         print("Installing Ollama for Linux...")
-        # best-effort install; may require your password
         run("curl -fsSL https://ollama.com/install.sh | sh", check=False)
         if shutil.which("ollama"):
             print("✓ Ollama installed")
         else:
             print("⚠️ Ollama install could not be confirmed. You can install manually: https://ollama.com")
 
-# Model downloads (no external CLI needed)
+# Model downloads
 print("\nPreparing local Hugging Face models directory...")
 models = {
     "cross-encoder/ms-marco-MiniLM-L-6-v2": "models/cross-encoder-ms-marco-MiniLM-L-6-v2",
     "sentence-transformers/all-MiniLM-L6-v2": "models/all-MiniLM-L6-v2",
 }
-pip_install("huggingface_hub")  # ensure available
+pip_install("huggingface_hub")
 from huggingface_hub import snapshot_download
 
 for repo_id, dest in models.items():
@@ -102,13 +101,13 @@ for repo_id, dest in models.items():
     snapshot_download(
         repo_id=repo_id,
         local_dir=dest,
-        local_dir_use_symlinks=False,  # real files instead of symlinks
+        local_dir_use_symlinks=False,
         resume_download=True,
-        tqdm_class=None,  # default progress
+        tqdm_class=None,
     )
     print(f"✓ Downloaded: {dest}")
 
-# Torch + CUDA check (we assume CUDA installed; just report)
+# Torch + CUDA check
 print("\nChecking PyTorch & CUDA:")
 if have_module("torch"):
     import torch
