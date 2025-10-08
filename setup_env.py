@@ -6,6 +6,59 @@ import sys
 import shutil
 from pathlib import Path
 
+import time
+import socket
+
+def _is_port_open(host: str, port: int, timeout=0.5) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(timeout)
+        try:
+            s.connect((host, port)); return True
+        except Exception:
+            return False
+
+def ensure_ollama_server():
+    """
+    Ensure the ollama server is running locally.
+    Tries systemd (if available) then falls back to spawning `ollama serve` in the background.
+    Waits until port 11434 is accepting connections (max ~12s).
+    """
+    if not shutil.which("ollama"):
+        print("⚠️ Ollama CLI not found; cannot start server.")
+        return False
+
+    host = os.environ.get("OLLAMA_HOST", "127.0.0.1:11434")
+    host_ip, host_port = (host.split(":")[0], int(host.split(":")[1]))
+    if _is_port_open(host_ip, host_port):
+        print(f"✓ Ollama server already running at {host}")
+        return True
+
+    # Try systemd user service (if available)
+    if shutil.which("systemctl"):
+        # Try user service first (no sudo)
+        try:
+            subprocess.run(["systemctl", "--user", "start", "ollama"], check=False)
+        except Exception:
+            pass
+        # Try system service as a fallback (requires sudo; best-effort)
+        if not _is_port_open(host_ip, host_port):
+            subprocess.run(["sudo", "systemctl", "start", "ollama"], check=False)
+
+    # If still not up, spawn a background server (WSL friendly)
+    if not _is_port_open(host_ip, host_port):
+        print("Starting `ollama serve` in the background…")
+        subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # Wait for readiness
+    for _ in range(24):  # ~12s max
+        if _is_port_open(host_ip, host_port):
+            print(f"✓ Ollama server ready at {host_ip}:{host_port}")
+            return True
+        time.sleep(0.5)
+
+    print("⚠️ Could not start or reach the Ollama server. You can start it manually with `ollama serve`.")
+    return False
+
 # ----------------- helpers -----------------
 def run(cmd, check=True):
     print(f"\n>>> {cmd}")
@@ -76,48 +129,50 @@ else:
     if shutil.which("ollama"):
         print("✓ Ollama already installed")
         # --- Llama3 7B model pull via Ollama ---
+        # --- Verify model presence (works for both new & existing installs) ---
         print("\nChecking for Llama3 7B model...")
-        if shutil.which("ollama"):
-            try:
-                # Check if already present
-                result = subprocess.run(
-                    ["ollama", "list"],
-                    capture_output=True, text=True
-                )
+        # NEW: ensure server is running
+        if ensure_ollama_server():
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+            if "llama3:7b" in result.stdout:
+                print("✓ Llama3 7B model already available.")
+            else:
+                print("⬇️  Pulling Llama3 7B model (this may take a while)…")
+                run("ollama pull llama3:7b", check=False)
+                # Re-check
+                result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
                 if "llama3:7b" in result.stdout:
-                    print("✓ Llama3 7B model already available.")
+                    print("✓ Llama3 7B model ready.")
                 else:
-                    print("⬇️  Downloading Llama3 7B model (this may take a while)...")
-                    subprocess.run(["ollama", "pull", "llama3:7b"], check=True)
-                    print("✓ Llama3 7B model installed.")
-            except Exception as e:
-                print(f"⚠️ Could not verify or download Llama3 7B model: {e}")
+                    print("⚠️ Pull did not complete. Try manually: `ollama pull llama3:7b`")
         else:
-            print("⚠️ Ollama not found; cannot download Llama3 7B automatically.")
+            print("⚠️ Skipping model pull because the Ollama server isn’t reachable.")
+
     else:
         print("Installing Ollama for Linux...")
         run("curl -fsSL https://ollama.com/install.sh | sh", check=False)
         if shutil.which("ollama"):
             print("✓ Ollama installed")
             # --- Llama3 7B model pull via Ollama ---
+            # --- Verify model presence (works for both new & existing installs) ---
             print("\nChecking for Llama3 7B model...")
-            if shutil.which("ollama"):
-                try:
-                    # Check if already present
-                    result = subprocess.run(
-                        ["ollama", "list"],
-                        capture_output=True, text=True
-                    )
+            # NEW: ensure server is running
+            if ensure_ollama_server():
+                result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+                if "llama3:7b" in result.stdout:
+                    print("✓ Llama3 7B model already available.")
+                else:
+                    print("⬇️  Pulling Llama3 7B model (this may take a while)…")
+                    run("ollama pull llama3:7b", check=False)
+                    # Re-check
+                    result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
                     if "llama3:7b" in result.stdout:
-                        print("✓ Llama3 7B model already available.")
+                        print("✓ Llama3 7B model ready.")
                     else:
-                        print("⬇️  Downloading Llama3 7B model (this may take a while)...")
-                        subprocess.run(["ollama", "pull", "llama3:7b"], check=True)
-                        print("✓ Llama3 7B model installed.")
-                except Exception as e:
-                    print(f"⚠️ Could not verify or download Llama3 7B model: {e}")
+                        print("⚠️ Pull did not complete. Try manually: `ollama pull llama3:7b`")
             else:
-                print("⚠️ Ollama not found; cannot download Llama3 7B automatically.")
+                print("⚠️ Skipping model pull because the Ollama server isn’t reachable.")
+
         else:
             print("⚠️ Ollama install could not be confirmed. You can install manually: https://ollama.com")
 
