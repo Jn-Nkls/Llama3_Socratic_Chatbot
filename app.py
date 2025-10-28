@@ -65,21 +65,8 @@ def _init_backend():
 
 _init_backend()
 
-# -------- Sidebar: retrieval settings --------
-with st.sidebar:
-    st.header("Retrieval settings")
-    use_ce = st.checkbox(
-        "Use cross-encoder reranking",
-        value=True,
-        help="Improves result quality on ambiguous queries, but adds latency."
-    )
-    st.caption("Tip: turn this off if you want the fastest responses.")
-
-# Warmup once at startup and whenever the CE toggle changes:
-if "last_warmup_ce" not in st.session_state or st.session_state.last_warmup_ce != use_ce:
-    # warmup(load_ce=False) still warms the embedding model & ANN
-    warmup(load_ce=use_ce)
-    st.session_state.last_warmup_ce = use_ce
+warmup(load_ce=True)
+st.session_state.last_warmup_ce = True
 
 @st.cache_resource
 def get_base64_of_bin_file(bin_file):
@@ -339,7 +326,7 @@ if user_input:
         st.session_state.topic = user_input.strip()
         ctx, cites = build_context(
             st.session_state.topic,
-            variants=3, first_stage_k=6, final_k=5, max_chars_per_passage=700, use_cross_encoder=use_ce
+            variants=3, first_stage_k=6, final_k=5, max_chars_per_passage=700, use_cross_encoder=True
         )
         st.session_state.background_notes = ctx or "(keine Treffer – stelle generische Fragen auf Basis des Themas)"
         st.session_state.last_cites = cites
@@ -347,7 +334,7 @@ if user_input:
         composite_query = f"{st.session_state.topic}\n\nLernenden-Turn: {user_input}"
         ctx, cites = build_context(
             composite_query,
-            variants=2, first_stage_k=5, final_k=5, max_chars_per_passage=700, use_cross_encoder=use_ce
+            variants=2, first_stage_k=5, final_k=5, max_chars_per_passage=700, use_cross_encoder=True
         )
         if ctx:
             st.session_state.background_notes = ctx

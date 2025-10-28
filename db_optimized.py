@@ -136,20 +136,6 @@ def embed_texts(texts: list[str]) -> np.ndarray:
         normalize_embeddings=True,
     )
 
-# -------------------- Optional query rewriter (off by default) --------------------
-# Keeping your interface; but default is no rewrite to avoid extra model
-def rewrite_query_multi(query: str, num_variants: int = 0):
-    if num_variants <= 0:
-        return [query]
-    # Lightweight heuristic rewrite (no generative model) for speed:
-    qs = {query}
-    lower = query.lower()
-    if "auswirkung" in lower:
-        qs.add(lower.replace("auswirkung", "einfluss"))
-    if "mentale gesundheit" in lower:
-        qs.add(lower.replace("mentale gesundheit", "psychische gesundheit"))
-    return list(qs)[: (num_variants + 1)]
-
 # -------------------- Retrieval & Reranking --------------------
 def retrieve_candidates(queries, top_k_per_query=5):
     seen, candidates = set(), []
@@ -185,7 +171,7 @@ def _should_use_ce(cands, topk=5, top1_sim_thresh=0.82, gap_thresh=0.05, std_thr
     top = sorted(have, key=lambda x: x["distance"])[:max(2, topk)]
     sims = [1.0 - c["distance"] for c in top]
     if len(sims) < 2:
-        return False  # only one candidate; nothing to rerank
+        return False
     top1, top2 = sims[0], sims[1]
     gap = top1 - top2
     if top1 >= top1_sim_thresh and gap >= gap_thresh:
@@ -224,10 +210,9 @@ def build_context(
     first_stage_k=8,           # pull a few more, still cheap
     final_k=5,
     max_chars_per_passage=700,
-    use_cross_encoder=True,    # can toggle off for even more speed
+    use_cross_encoder=True,    # can toggle off for more speed
 ):
-    qs = rewrite_query_multi(query, num_variants=variants)
-    cands = retrieve_candidates(qs, top_k_per_query=first_stage_k)
+    cands = retrieve_candidates(query, top_k_per_query=first_stage_k)
     # GATE: only run CE when ambiguous (and only if caller allows CE)
     ce_enabled = use_cross_encoder and _should_use_ce(cands, topk=final_k)
     ranked = rerank(query, cands, top_k=final_k, enable=ce_enabled)
@@ -246,8 +231,6 @@ def build_context(
         cites.append({"label": cite, "id": r["id"], "source": src, "score": float(r.get("score", 0.0))})
     return "\n".join(ctx_lines), cites
 
-# db_optimized.py (add near bottom)
-
 def warmup(load_ce: bool = True):
     """Preload models, build kernels, and warm ANN to kill cold-start lag."""
     # 1) Warm sentence-transformer + CUDA kernels
@@ -257,7 +240,7 @@ def warmup(load_ce: bool = True):
         _collection.query(query_embeddings=_[:1].tolist(), n_results=1, include=["documents"])
     except Exception:
         pass
-    # 3) Optionally warm cross-encoder
+    # 3) Optionally warm cross-encoder --> Not necessary anymore --> always true rn
     if load_ce:
         global _reranker
         if _reranker is None:
@@ -276,23 +259,35 @@ def warmup(load_ce: bool = True):
         _torch.cuda.synchronize()
     return True
 
-
-
-# -------------------- Index build (one pass, no temp files) --------------------
 def start_DB(in_folder: Path):
-    texts, metas = load_all_texts(in_folder)  # parallel PDFs, no .txt writes
-    chunk_texts, chunk_metas, ids = chunk_documents(texts, metas)
-    embeddings = embed_texts(chunk_texts)     # big batches, normalized
-    _collection.upsert(
-        ids=ids,
-        documents=chunk_texts,
-        metadatas=chunk_metas,
-        embeddings=embeddings,
-    )
-    try:
-        _client.persist()
-    except Exception:
-        pass
+    if not os.listdir(folder_path):
+        print("Folder is empty")
+        try:
+            _client.delete_collection(name="my_docs")
+        except Exception:
+            pass
+        global _collection
+        _collection = _client.get_or_create_collection(name="my_docs")
+        try:
+            _client.persist()
+        except Exception:
+            pass
+    else:
+        print("Folder is not empty")
+        texts, metas = load_all_texts(in_folder)  # parallel PDFs, no .txt writes
+        chunk_texts, chunk_metas, ids = chunk_documents(texts, metas)
+        embeddings = embed_texts(chunk_texts)  # big batches, normalized
+        _collection.upsert(
+            ids=ids,
+            documents=chunk_texts,
+            metadatas=chunk_metas,
+            embeddings=embeddings,
+        )
+        try:
+            _client.persist()
+        except Exception:
+            pass
+
 
 # -------------------- Small demo path (optional) --------------------
 if __name__ == "__main__":
