@@ -111,7 +111,7 @@ core_packages = [
     ("transformers", None),
     ("accelerate", None),
     ("faiss", "faiss-cpu"),
-    ("chromadb", None),  # ✅ NEW: add ChromaDB
+    ("chromadb", None)
 ]
 optional_packages = [
     ("plotly", None),

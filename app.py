@@ -1,30 +1,115 @@
 import os
 import json
+from xml.etree.ElementTree import tostring
+
 import requests
 import streamlit as st
 from pathlib import Path
 import base64
-#from db import build_context
+import time
+# from db import build_context
 from db_optimized import build_context, start_DB, warmup
 
-
+print("page_load")
 current_dir = Path(__file__).resolve()
 image_path = current_dir.parent / "images"
 folder_path = current_dir.parent / "docs"
+PROMPT_FILE = current_dir.parent / "system_prompt_de.txt"
+INITIAL_FILE = current_dir.parent / "initial_message.txt"
+ACCESS_COUNT_FILE = current_dir.parent / "access_count.txt"
 
+# Settings Sidebar for prompt and initial message
+SETTINGS_PASSWORD = os.getenv("PROMPT_EDIT_PASSWORD", "KI_Führerschein")
+
+with st.sidebar.expander("⚙️ Einstellungen (Admin)", expanded=False):
+    pw = st.text_input("Passwort (Einstellungen werden erst nach korrekter Eingabe sichtbar)", type="password", key="prompt_pw")
+    if pw == SETTINGS_PASSWORD:
+        st.write("*Aufrufe:*", st.session_state.access_count)
+        st.markdown("**System-Prompt bearbeiten:**")
+        # Load current prompt for editing
+        if "prompt_edit_buffer" not in st.session_state:
+            try:
+                with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+                    st.session_state.prompt_edit_buffer = f.read()
+            except Exception:
+                st.session_state.prompt_edit_buffer = ""
+        new_prompt = st.text_area("System-Prompt", st.session_state.prompt_edit_buffer, height=200,
+                                  key="prompt_edit_area")
+        if st.button("Prompt speichern"):
+            try:
+                with open(PROMPT_FILE, "w", encoding="utf-8") as f:
+                    f.write(new_prompt)
+                st.success("Prompt gespeichert! Änderungen sind sofort aktiv.")
+                st.session_state.prompt_edit_buffer = new_prompt
+                st.session_state._prompt_reload_flag = True  # Force reload below
+                st.session_state.pop("current_prompt", None)  # Remove cached prompt
+            except Exception as e:
+                st.error(f"Fehler beim Speichern: {e}")
+        st.markdown("**Initiale Nachricht bearbeiten:**")
+        if "initial_m_edit_buffer" not in st.session_state:
+            try:
+                with open(INITIAL_FILE, "r", encoding="utf-8") as f:
+                    st.session_state.initial_m_edit_buffer = f.read()
+            except Exception:
+                st.session_state.initial_m_edit_buffer = ""
+        new_message = st.text_area("Initial Message", st.session_state.initial_m_edit_buffer, height=200,
+                                   key="initial_message_edit_area")
+        if st.button("Nachricht speichern"):
+            print("initialM_changed")
+            try:
+                with open(INITIAL_FILE, "w", encoding="utf-8") as f:
+                    f.write(new_message)
+                st.success("Änderung gespeichert! Änderungen sind sofort aktiv.")
+                st.session_state.initial_m_edit_buffer = new_message
+                st.session_state.im_reload_flag = True  # Force reload below
+                st.session_state.pop("current_initial_message", None)  # Remove cached message
+            except Exception as e:
+                st.error(f"Fehler beim Speichern: {e}")
+    elif pw:
+        st.error("Falsches Passwort.")
+
+# Prompt loading
+def load_prompt(prompt_path: Path) -> str:
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+def load_initial_message(message_path: Path) -> str:
+    with open(message_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+def get_current_prompt():
+    # If prompt was just edited, reload from file
+    if st.session_state.get("_prompt_reload_flag"):
+        st.session_state._prompt_reload_flag = False
+        st.session_state.current_prompt = load_prompt(PROMPT_FILE)
+    if "current_prompt" not in st.session_state:
+        st.session_state.current_prompt = load_prompt(PROMPT_FILE)
+    return st.session_state.current_prompt
+
+def get_current_initial_message():
+    # If initial message was just edited, reload from file
+    if st.session_state.get("im_reload_flag"):
+        st.session_state.im_reload_flag = False
+        st.session_state.current_initial_message = load_initial_message(INITIAL_FILE)
+    if "current_initial_message" not in st.session_state:
+        st.session_state.current_initial_message = load_initial_message(INITIAL_FILE)
+    return st.session_state.current_initial_message
+
+# Streamlit config and background
 st.set_page_config(page_title="Dialogos BNE", page_icon="🦙", layout="centered")
 
-import time
 
 def _ollama_get(url, timeout=5):
     return requests.get(url, timeout=timeout)
+
 
 def _ollama_post(url, payload, timeout=120, stream=False):
     headers = {"Content-Type": "application/json"}
     return requests.post(url, data=json.dumps(payload), headers=headers, timeout=timeout, stream=stream)
 
+
 def ollama_ready(base_url: str, model: str) -> bool:
-    """Check server is reachable and model is available."""
+    # Check server is reachable and model is available.
     base = base_url.rstrip('/')
     try:
         r = _ollama_get(f"{base}/api/version", timeout=3)
@@ -40,10 +125,10 @@ def ollama_ready(base_url: str, model: str) -> bool:
     except Exception:
         return False
 
+
 def ollama_warmup(base_url: str, model: str, timeout: int = 300) -> bool:
-    """
-    Do a tiny non-streaming /api/generate call to load weights/kv-cache, so streaming chat won’t 503.
-    """
+
+   # Do a tiny non-streaming /api/generate call to load weights/kv-cache, so streaming chat won’t 503.
     base = base_url.rstrip('/')
     payload = {
         "model": model,
@@ -57,22 +142,26 @@ def ollama_warmup(base_url: str, model: str, timeout: int = 300) -> bool:
     except Exception:
         return False
 
+
 @st.cache_resource(show_spinner=False)
 def _init_backend():
     # Ensure index exists and models are in-memory
     start_DB(folder_path)
     return True
 
+
 _init_backend()
 
 warmup(load_ce=True)
 st.session_state.last_warmup_ce = True
+
 
 @st.cache_resource
 def get_base64_of_bin_file(bin_file):
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
+
 
 def set_png_as_page_bg(png_file):
     bin_str = get_base64_of_bin_file(png_file)
@@ -128,7 +217,7 @@ def set_png_as_page_bg(png_file):
       border: 0 !important;
       backdrop-filter: none !important;
     }
-    
+
     /* Just in case Streamlit adds decorative pseudo-elements here */
     [data-testid="stBottom"]::before,
     [data-testid="stBottom"]::after{
@@ -138,7 +227,7 @@ def set_png_as_page_bg(png_file):
       box-shadow: none !important;
       border: 0 !important;
     }
-    
+
     /* The element-container that hosts the chat input inside stBottom */
     [data-testid="stBottom"] .stElementContainer,
     [data-testid="stBottom"] .stChatInput{
@@ -152,59 +241,21 @@ def set_png_as_page_bg(png_file):
 
     st.markdown(css.replace("___B64___", bin_str), unsafe_allow_html=True)
 
-set_png_as_page_bg(image_path/'background.png')
+
+set_png_as_page_bg(image_path / 'background.png')
 st.title("Dialogos BNE")
 
 # -------- Model config via env (no UI controls) --------
-MODEL = os.getenv("OLLAMA_MODEL", "llama3:8b")                 # e.g., "llama3", "llama3:8b-instruct"
+MODEL = os.getenv("OLLAMA_MODEL", "llama3:8b")  # e.g., "llama3", "llama3:8b-instruct"
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.7"))
 TOP_P = float(os.getenv("LLM_TOP_P", "0.9"))
 MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "512"))
 
-# -------- Initial System Prompt (German, Socratic) --------
-INITIAL_SYSTEM_PROMPT_DE = """Rolle: Du bist ein geduldiger, sokratischer Tutor. Du hilfst Lernenden,
-indem du gezielte Fragen stellst, statt Lösungen vorzugeben. Du führst durch kleine,
-logische Schritte, prüfst (Miss-)Verständnisse und bietest kurze, konkrete Hinweise.
-
-Sprache & Stil:
-- Sprich Deutsch, freundlich und klar.
-- Stelle jeweils nur EINE fokussierte Frage pro Antwort (max. 2–3 Sätze).
-- Bestätige richtige Zwischenschritte knapp; bei Irrtümern stelle Nachfragen.
-- Vermeide lange Monologe, Aufzählungslisten und direkte Lösungen.
-
-Verwendung von Hintergrundwissen:
-- Du erhältst **Hintergrundnotizen** aus einer lokalen Datenbank (RAG). Sie sind nur für dich.
-- Nutze sie, um deine nächste Frage gezielt zu wählen, aber:
-  * Zitiere oder verrate diese Notizen nicht wörtlich.
-  * Erfinde keine Inhalte außerhalb der Notizen.
-  * Gib keine langen Zusammenfassungen aus den Notizen wieder.
-  * Formuliere Fragen so, dass der/die Lernende die Einsichten selbst entdeckt.
-- Wenn ausdrücklich nach Quellen gefragt wird („Woher weißt du das?“), gib nur Dateinamen/Labels an, nicht die Passagen.
-
-Themenstart:
-- Beginne immer mit: „Welches Thema möchtest du heute üben?“
-- Die erste Nutzerantwort definiert das Thema. Danach richtest du jede Frage an diesem Thema aus.
-- Wenn keine oder wenige Notizen gefunden werden, bleibe bei sokratischen Fragen auf Basis des Themas.
-
-Hinweise bei Lösungswunsch:
-- Wenn die Lernenden direkt nach der Lösung fragen, erinnere kurz an die Methode und biete 2–3 präzise Hinweise.
-- Gib keine vollständigen Lösungen.
-
-WICHTIG:
-- Keine Halluzinationen. Wenn dir etwas unklar ist, frage nach.
-- Bleibe strikt im sokratischen Modus (Fragen-basiert).
-- Eine Antwort = eine fokussierte Frage, ggf. ein sehr kurzer Hinweis.
-
-<BEGIN HINTERGRUNDNOTIZEN – NICHT OFFENLEGEN>
-{background_notes}
-<END HINTERGRUNDNOTIZEN>
-"""
 
 # -------- Ollama chat helper (streaming) --------
 def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
                 temperature: float = 0.7, top_p: float = 0.9, max_tokens: int = 512, stream: bool = True):
-
     base = base_url.rstrip('/')
     chat_url = f"{base}/api/chat"
 
@@ -264,13 +315,15 @@ def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
         except requests.exceptions.RequestException as e:
             # Status code if available
             status = getattr(e.response, "status_code", None)
-            transient = status in (500, 502, 503, 504) or isinstance(e, (requests.exceptions.ConnectionError, requests.exceptions.Timeout))
+            transient = status in (500, 502, 503, 504) or isinstance(e, (
+            requests.exceptions.ConnectionError, requests.exceptions.Timeout))
             if attempt < max_attempts and transient:
                 time.sleep(backoff)
                 backoff *= 1.5
                 continue
             # If it’s a non-transient error or we exhausted retries, rethrow
             raise
+
 
 # -------- Session state --------
 if "messages" not in st.session_state:
@@ -284,16 +337,16 @@ if "last_cites" not in st.session_state:
 if "show_sources" not in st.session_state:
     st.session_state.show_sources = False
 
-# -------- Starter assistant turn --------
+
+# Starter assistant turn
 def ensure_starter_message():
     if len(st.session_state.messages) == 0:
-        # Short help is given via /help, to keep the first turn focused & socratic.
+        initial_text = get_current_initial_message()
         st.session_state.messages.append({
             "role": "assistant",
-            "content": "Hallo, ich bin dein sokratischer Gesprächspartner. Ich werde dich bei deinem Gedankengang zu "
-                       "Themen im Bereich 'Nachhaltigkeit' begleiten. Über welches Thema möchtest du dich mit mir "
-                       "austauschen?"
+            "content": initial_text
         })
+
 
 ensure_starter_message()
 
@@ -302,11 +355,46 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
+
 # -------- Slash-command handler --------
 def handle_command(cmd: str) -> bool:
     """Returns True if a command was handled (i.e., don't call the LLM)."""
     parts = cmd.strip().split()
     head = parts[0].lower()
+
+# -------- Access counter --------
+def read_access_count() -> int:
+    try:
+        if ACCESS_COUNT_FILE.exists():
+            with open(ACCESS_COUNT_FILE, "r", encoding="utf-8") as f:
+                return int((f.read().strip() or "0"))
+        return 0
+    except Exception:
+        return -1
+
+def increment_access_count():
+    print("access")
+    try:
+        if ACCESS_COUNT_FILE.exists():
+            with open(ACCESS_COUNT_FILE, "r") as f:
+                count = int(f.read().strip() or "0")
+        else:
+            count = 0
+        count += 1
+        with open(ACCESS_COUNT_FILE, "w") as f:
+            f.write(str(count))
+        return count
+    except Exception:
+        return -1
+
+# Increment exactly once per user session/tab
+if "access_count_initialized" not in st.session_state:
+    st.session_state.access_count_initialized = True
+    st.session_state.access_count = increment_access_count()
+else:
+    # on reruns: do NOT increment; just keep current or refresh from file
+    st.session_state.access_count = read_access_count()
+
 
 # -------- Chat input (the only UI) --------
 user_input = st.chat_input("Nachricht eingeben …")
@@ -341,7 +429,7 @@ if user_input:
             st.session_state.last_cites = cites
 
     # Build system prompt (inject hidden notes)
-    system_prompt = INITIAL_SYSTEM_PROMPT_DE.format(background_notes=st.session_state.background_notes)
+    system_prompt = get_current_prompt().format(background_notes=st.session_state.background_notes)
 
     # LLM call (stream to chat)
     with st.chat_message("assistant"):
@@ -349,14 +437,14 @@ if user_input:
         reply = ""
         try:
             for chunk in ollama_chat(
-                model=MODEL,
-                base_url=OLLAMA_URL,
-                system_prompt=system_prompt,
-                messages=st.session_state.messages,
-                temperature=TEMPERATURE,
-                top_p=TOP_P,
-                max_tokens=MAX_TOKENS,
-                stream=True
+                    model=MODEL,
+                    base_url=OLLAMA_URL,
+                    system_prompt=system_prompt,
+                    messages=st.session_state.messages,
+                    temperature=TEMPERATURE,
+                    top_p=TOP_P,
+                    max_tokens=MAX_TOKENS,
+                    stream=True
             ):
                 reply += chunk
                 placeholder.markdown(reply)
