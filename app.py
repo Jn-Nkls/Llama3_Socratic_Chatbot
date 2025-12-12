@@ -1,7 +1,5 @@
 import os
 import json
-from xml.etree.ElementTree import tostring
-
 import requests
 import streamlit as st
 from pathlib import Path

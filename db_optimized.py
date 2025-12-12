@@ -1,5 +1,6 @@
 import os
 import sys, multiprocessing as mp
+import threading
 from pathlib import Path
 import multiprocessing as mp
 from functools import lru_cache
@@ -33,6 +34,7 @@ _model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
 _model.max_seq_length = 256  # SPEEDUP: cap length—enough for chunks, less work
 
 # Cross-encoder (optional) is heavy—lazy init
+_reranker_lock = threading.Lock()
 _reranker = None
 
 def is_ce_loaded() -> bool:
@@ -186,19 +188,22 @@ def _should_use_ce(cands, topk=5, top1_sim_thresh=0.82, gap_thresh=0.05, std_thr
     print("default ce")
     return True
 
+def ensure_reranker_loaded():
+    global _reranker
+    with _reranker_lock:
+        if _reranker is None:
+            _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device=device)
+            if device == "cuda":
+                try:
+                    _reranker.model.half()
+                except Exception:
+                    pass
+
 def rerank(query: str, candidates, top_k=5, enable=True):
     if not enable or not candidates:
         # simple cosine prefilter using the bi-encoder (cheap)
         return candidates[:top_k]
-    global _reranker
-    if _reranker is None:
-        _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device=device)
-        if device == "cuda":
-            # SPEEDUP: half precision on GPU (safe for inference)
-            try:
-                _reranker.model.half()
-            except Exception:
-                pass
+    ensure_reranker_loaded()
     pairs = [(query, c["doc"]) for c in candidates]
     scores = _reranker.predict(pairs)  # batched internally
     order = np.argsort(scores)[::-1]
@@ -242,14 +247,7 @@ def warmup(load_ce: bool = True):
         pass
     # 3) Optionally warm cross-encoder --> Not necessary anymore --> always true rn
     if load_ce:
-        global _reranker
-        if _reranker is None:
-            _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device=device)
-            if device == "cuda":
-                try:
-                    _reranker.model.half()
-                except Exception:
-                    pass
+        ensure_reranker_loaded()
         try:
             _ = _reranker.predict([("warmup", "warmup")])
         except Exception:
