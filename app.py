@@ -5,7 +5,6 @@ import streamlit as st
 from pathlib import Path
 import base64
 import time
-# from db import build_context
 from db_optimized import build_context, start_DB, warmup
 
 print("page_load")
@@ -251,7 +250,6 @@ TOP_P = float(os.getenv("LLM_TOP_P", "0.9"))
 MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "512"))
 
 
-# -------- Ollama chat helper (streaming) --------
 def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
                 temperature: float = 0.7, top_p: float = 0.9, max_tokens: int = 512, stream: bool = True):
     base = base_url.rstrip('/')
@@ -323,7 +321,6 @@ def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
             raise
 
 
-# -------- Session state --------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "topic" not in st.session_state:
@@ -348,19 +345,11 @@ def ensure_starter_message():
 
 ensure_starter_message()
 
-# -------- Render history (chat-only) --------
 for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
 
-# -------- Slash-command handler --------
-def handle_command(cmd: str) -> bool:
-    """Returns True if a command was handled (i.e., don't call the LLM)."""
-    parts = cmd.strip().split()
-    head = parts[0].lower()
-
-# -------- Access counter --------
 def read_access_count() -> int:
     try:
         if ACCESS_COUNT_FILE.exists():
@@ -394,18 +383,11 @@ else:
     st.session_state.access_count = read_access_count()
 
 
-# -------- Chat input (the only UI) --------
 user_input = st.chat_input("Nachricht eingeben …")
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
-
-    # Commands short-circuit the LLM
-    if user_input.strip().startswith("/"):
-        handled = handle_command(user_input)
-        if handled:
-            st.rerun()
 
     # Topic & retrieval
     if st.session_state.topic is None:
