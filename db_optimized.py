@@ -1,11 +1,12 @@
 import os
-import sys, multiprocessing as mp
+import sys
 import threading
 from pathlib import Path
 import multiprocessing as mp
 from functools import lru_cache
 import chromadb
-import fitz  # PyMuPDF (import as fitz is faster to start)
+import fitz
+from docx import Document
 import numpy as np
 import torch
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -15,33 +16,44 @@ from concurrent.futures import ThreadPoolExecutor
 # -------------------- Global config & singletons --------------------
 device = "cuda" if torch.cuda.is_available() else "cpu"
 IS_WINDOWS = sys.platform.startswith("win")
-torch.set_grad_enabled(False)  # SPEEDUP: no gradients anywhere
+torch.set_grad_enabled(False)
 if device == "cuda":
-    torch.backends.cudnn.benchmark = True  # SPEEDUP: better kernels after warmup
+    torch.backends.cudnn.benchmark = True
 
-current_dir = Path(__file__).resolve()
-folder_path = current_dir.parent / "docs"
-db_path = current_dir.parent / ".chroma"
+current_dir = Path(__file__).resolve().parent
+folder_path = current_dir / "docs"
+db_path = current_dir / ".chroma"
+models_dir = current_dir / "models"
+
+EMBED_MODEL_PATH = models_dir / "all-MiniLM-L6-v2"
+RERANK_MODEL_PATH = models_dir / "cross-encoder-ms-marco-MiniLM-L-6-v2"
+
 db_path.mkdir(exist_ok=True)
+_db_init_lock = threading.Lock()
+_db_ready = False
 
-# One client/collection for the whole process (avoid re-creating)
 _client = chromadb.PersistentClient(path=str(db_path))
 _collection = _client.get_or_create_collection(name="my_docs")
 
-# SentenceTransformer is expensive—load once
-# SPEEDUP: larger batch + normalized outputs for better ANN behavior
-_model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
-_model.max_seq_length = 256  # SPEEDUP: cap length—enough for chunks, less work
 
+def _require_local_model(path: Path, label: str) -> str:
+    if not path.exists() or not any(path.iterdir()):
+        raise FileNotFoundError(
+            f"{label} not found at {path}. "
+            f"Run `python setup_models.py` first."
+        )
+    return str(path)
+# SentenceTransformer is expensive—load once
+_model = SentenceTransformer(
+    _require_local_model(EMBED_MODEL_PATH, "Embedding model"),
+    device=device
+)
+_model.max_seq_length = 256
 # Cross-encoder (optional) is heavy—lazy init
 _reranker_lock = threading.Lock()
 _reranker = None
-
 def is_ce_loaded() -> bool:
-    """Utility so the app can introspect CE status if needed."""
-    print(_reranker)
     return _reranker is not None
-
 # -------------------- Fast PDF → text (no disk writes) --------------------
 def _pdf_to_text_one(pdf_path: Path) -> tuple[str, dict]:
     """Extract text from a single PDF file into memory (no temp .txt)."""
@@ -56,17 +68,27 @@ def _txt_to_text_one(txt_path: Path) -> tuple[str, dict]:
     with open(txt_path, "r", encoding="utf-8") as f:
         return f.read(), {"source": txt_path.name}
 
+def _docx_to_text_one(docx_path: Path) -> tuple[str, dict]:
+    """Extract text from a .docx file into memory (no temp .txt)."""
+    doc = Document(docx_path)
+    parts = [p.text for p in doc.paragraphs]
+    text = "\n".join(parts)
+    return text, {"source": docx_path.name}
+
 def load_all_texts(in_folder: Path) -> tuple[list[str], list[dict]]:
-    """Load .pdf and .txt into memory, parallelizing PDFs."""
+    """Load .pdf, .docx and .txt into memory, parallelizing PDFs."""
     texts, metas = [], []
     pdfs = []
     txts = []
+    docx_files = []
     for fn in os.listdir(in_folder):
         p = in_folder / fn
         if fn.endswith(".pdf"):
             pdfs.append(p)
         elif fn.endswith(".txt"):
             txts.append(p)
+        elif fn.endswith(".docx"):
+            docx_files.append(p)
 
     # SPEEDUP: parallel PDF extraction (CPU-bound, scales with cores)
     if pdfs:
@@ -75,7 +97,7 @@ def load_all_texts(in_folder: Path) -> tuple[list[str], list[dict]]:
             try:
                 with mp.Pool(processes=min(len(pdfs), max(mp.cpu_count() - 1, 1))) as pool:
                     for text, meta in pool.map(_pdf_to_text_one, pdfs):
-                        texts.append(text);
+                        texts.append(text)
                         metas.append(meta)
                 used_parallel = True
             except Exception:
@@ -86,17 +108,23 @@ def load_all_texts(in_folder: Path) -> tuple[list[str], list[dict]]:
             if len(pdfs) > 1:
                 with ThreadPoolExecutor(max_workers=min(len(pdfs), max(os.cpu_count() - 1, 1))) as ex:
                     for text, meta in ex.map(_pdf_to_text_one, pdfs):
-                        texts.append(text);
+                        texts.append(text)
                         metas.append(meta)
             else:
                 for p in pdfs:
                     text, meta = _pdf_to_text_one(p)
-                    texts.append(text);
+                    texts.append(text)
                     metas.append(meta)
 
     # Fast sequential for small .txt files
     for p in txts:
         text, meta = _txt_to_text_one(p)
+        texts.append(text)
+        metas.append(meta)
+
+    # Fast sequential for .docx files
+    for p in docx_files:
+        text, meta = _docx_to_text_one(p)
         texts.append(text)
         metas.append(meta)
 
@@ -141,6 +169,8 @@ def embed_texts(texts: list[str]) -> np.ndarray:
 # -------------------- Retrieval & Reranking --------------------
 def retrieve_candidates(queries, top_k_per_query=5):
     seen, candidates = set(), []
+    if isinstance(queries, str):
+        queries = [queries]
     for q in queries:
         q_emb = embed_texts([q])  # uses normalized vec
         res = _collection.query(
@@ -155,7 +185,6 @@ def retrieve_candidates(queries, top_k_per_query=5):
         for _id, doc, meta, dist in zip(ids, docs, metas, dists):
             if _id not in seen:
                 seen.add(_id)
-                candidates.append({"id": _id, "doc": doc, "meta": meta})
                 candidates.append({"id": _id, "doc": doc, "meta": meta, "distance": float(dist)})
     return candidates
 
@@ -192,7 +221,10 @@ def ensure_reranker_loaded():
     global _reranker
     with _reranker_lock:
         if _reranker is None:
-            _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device=device)
+            _reranker = CrossEncoder(
+                _require_local_model(RERANK_MODEL_PATH, "Reranker model"),
+                device=device
+            )
             if device == "cuda":
                 try:
                     _reranker.model.half()
@@ -258,6 +290,10 @@ def warmup(load_ce: bool = True):
     return True
 
 def start_DB(in_folder: Path):
+    global _collection, _db_ready
+    with _db_init_lock:
+        if _db_ready:
+            return
     if not os.listdir(folder_path):
         print("Folder is empty")
         try:
@@ -285,6 +321,22 @@ def start_DB(in_folder: Path):
             _client.persist()
         except Exception:
             pass
+    _db_ready = True
+
+def rebuild_DB(in_folder: Path):
+    """Force a full rebuild of the vector database.
+    Call this after adding or overwriting documents in the docs folder.
+    Drops and recreates the collection so stale chunks from changed files are removed.
+    """
+    global _collection, _db_ready
+    with _db_init_lock:
+        _db_ready = False
+    try:
+        _client.delete_collection(name="my_docs")
+    except Exception:
+        pass
+    _collection = _client.get_or_create_collection(name="my_docs")
+    start_DB(in_folder)
 
 
 # -------------------- Small demo path (optional) --------------------

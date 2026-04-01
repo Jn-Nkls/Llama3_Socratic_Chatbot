@@ -2,13 +2,12 @@ import argparse
 import statistics as stats
 import time
 from pathlib import Path
-
 import numpy as np
 
 from db_optimized import (
     start_DB,
     build_context,
-    folder_path,  # from db_optimized
+    folder_path,
     device as _device,
 )
 try:
