@@ -5,7 +5,9 @@ import streamlit as st
 from pathlib import Path
 import base64
 import time
-from db_optimized import build_context, start_DB, warmup
+from db_optimized import build_context, start_DB, warmup, rebuild_DB
+import threading
+import os
 
 print("page_load")
 current_dir = Path(__file__).resolve()
@@ -14,9 +16,11 @@ folder_path = current_dir.parent / "docs"
 PROMPT_FILE = current_dir.parent / "system_prompt_de.txt"
 INITIAL_FILE = current_dir.parent / "initial_message.txt"
 ACCESS_COUNT_FILE = current_dir.parent / "access_count.txt"
+MAX_OLLAMA_CONCURRENCY = int(os.getenv("MAX_OLLAMA_CONCURRENCY", "2"))
+_OLLAMA_SEM = threading.Semaphore(MAX_OLLAMA_CONCURRENCY)
 
 # Settings Sidebar for prompt and initial message
-SETTINGS_PASSWORD = os.getenv("PROMPT_EDIT_PASSWORD", "KI_Führerschein")
+SETTINGS_PASSWORD = st.secrets["admin_password"] ["value"]
 
 with st.sidebar.expander("⚙️ Einstellungen (Admin)", expanded=False):
     pw = st.text_input("Passwort (Einstellungen werden erst nach korrekter Eingabe sichtbar)", type="password", key="prompt_pw")
@@ -42,6 +46,7 @@ with st.sidebar.expander("⚙️ Einstellungen (Admin)", expanded=False):
                 st.session_state.pop("current_prompt", None)  # Remove cached prompt
             except Exception as e:
                 st.error(f"Fehler beim Speichern: {e}")
+        # Same for initial message
         st.markdown("**Initiale Nachricht bearbeiten:**")
         if "initial_m_edit_buffer" not in st.session_state:
             try:
@@ -62,6 +67,39 @@ with st.sidebar.expander("⚙️ Einstellungen (Admin)", expanded=False):
                 st.session_state.pop("current_initial_message", None)  # Remove cached message
             except Exception as e:
                 st.error(f"Fehler beim Speichern: {e}")
+
+        # File uploader for knowledge base documents
+        st.markdown("**Dokumente zur Wissensbasis hinzufügen:**")
+        uploaded_files = st.file_uploader(
+            "PDF-, TXT- oder DOCX-Dateien hochladen (mehrere möglich)",
+            type=["pdf", "txt", "docx"],
+            accept_multiple_files=True,
+            key="doc_uploader",
+        )
+        if uploaded_files:
+            if st.button("Hochladen & Datenbank aktualisieren"):
+                saved_names = []
+                errors = []
+                for uf in uploaded_files:
+                    try:
+                        dest = folder_path / uf.name
+                        with open(dest, "wb") as f:
+                            f.write(uf.getbuffer())
+                        saved_names.append(uf.name)
+                    except Exception as e:
+                        errors.append(f"{uf.name}: {e}")
+                if saved_names:
+                    with st.spinner("Datenbank wird neu aufgebaut …"):
+                        try:
+                            rebuild_DB(folder_path)
+                            st.success(
+                                f"{len(saved_names)} Datei(en) gespeichert und Datenbank aktualisiert: "
+                                + ", ".join(saved_names)
+                            )
+                        except Exception as e:
+                            st.error(f"Fehler beim Neuaufbau der Datenbank: {e}")
+                for err in errors:
+                    st.error(f"Fehler beim Speichern: {err}")
     elif pw:
         st.error("Falsches Passwort.")
 
@@ -142,15 +180,12 @@ def ollama_warmup(base_url: str, model: str, timeout: int = 300) -> bool:
 
 @st.cache_resource(show_spinner=False)
 def _init_backend():
-    # Ensure index exists and models are in-memory
     start_DB(folder_path)
+    warmup(load_ce=True)
     return True
-
 
 _init_backend()
 
-warmup(load_ce=True)
-st.session_state.last_warmup_ce = True
 
 
 @st.cache_resource
@@ -265,7 +300,6 @@ def ollama_chat(model: str, base_url: str, system_prompt: str, messages,
         if ollama_warmup(base, model):
             st.session_state[warmed_key] = True
         else:
-            # We still proceed; warmup is best-effort
             pass
 
     payload = {
@@ -360,7 +394,7 @@ def read_access_count() -> int:
         return -1
 
 def increment_access_count():
-    print("access")
+    print("access_count")
     try:
         if ACCESS_COUNT_FILE.exists():
             with open(ACCESS_COUNT_FILE, "r") as f:
@@ -415,36 +449,35 @@ if user_input:
     with st.chat_message("assistant"):
         placeholder = st.empty()
         reply = ""
+        acquired_immediately = _OLLAMA_SEM.acquire(blocking=False)
+        if not acquired_immediately:
+            placeholder.info("Das Modell ist gerade ausgelastet. Bitte kurz warten …")
+            _OLLAMA_SEM.acquire()
         try:
-            for chunk in ollama_chat(
-                    model=MODEL,
-                    base_url=OLLAMA_URL,
-                    system_prompt=system_prompt,
-                    messages=st.session_state.messages,
-                    temperature=TEMPERATURE,
-                    top_p=TOP_P,
-                    max_tokens=MAX_TOKENS,
-                    stream=True
-            ):
-                reply += chunk
-                placeholder.markdown(reply)
-            assistant_reply = reply.strip()
-        except Exception as e:
-            assistant_reply = f"Entschuldige, beim Aufruf des lokalen Modells ist ein Fehler aufgetreten: `{e}`"
-            placeholder.markdown(assistant_reply)
+            placeholder.empty()  # remove busy message before streaming starts
+            try:
+                for chunk in ollama_chat(
+                        model=MODEL,
+                        base_url=OLLAMA_URL,
+                        system_prompt=system_prompt,
+                        messages=st.session_state.messages,
+                        temperature=TEMPERATURE,
+                        top_p=TOP_P,
+                        max_tokens=MAX_TOKENS,
+                        stream=True
+                ):
+                    reply += chunk
+                    placeholder.markdown(reply)
+                assistant_reply = reply.strip()
+            except Exception as e:
+                assistant_reply = (
+                    "Entschuldige, beim Aufruf des lokalen Modells ist ein Fehler aufgetreten: "
+                    f"`{e}`"
+                )
+                placeholder.markdown(assistant_reply)
+        finally:
+            _OLLAMA_SEM.release()
 
     # Save assistant turn
     st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
-
-    # Optional: source labels via /sources on (never reveal note content)
-    if st.session_state.show_sources and st.session_state.last_cites:
-        labels = []
-        for c in st.session_state.last_cites:
-            src = c.get("source") or c.get("id")
-            labels.append(f"- {c.get('label')} — `{src}` (Score: {c.get('score'):.3f})")
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": "**Quellen (Labels/Dateinamen):**\n" + "\n".join(labels)
-        })
-
     st.rerun()
