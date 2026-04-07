@@ -1,4 +1,3 @@
-import os
 import json
 import requests
 import streamlit as st
@@ -21,6 +20,9 @@ _OLLAMA_SEM = threading.Semaphore(MAX_OLLAMA_CONCURRENCY)
 
 # Settings Sidebar for prompt and initial message
 SETTINGS_PASSWORD = st.secrets["admin_password"] ["value"]
+
+# General page-config --> Always needs to be the first st.-command!
+st.set_page_config(page_title="Dialogos BNE", page_icon="🦙", layout="centered", initial_sidebar_state="collapsed")
 
 with st.sidebar.expander("⚙️ Einstellungen (Admin)", expanded=False):
     pw = st.text_input("Passwort (Einstellungen werden erst nach korrekter Eingabe sichtbar)", type="password", key="prompt_pw")
@@ -129,10 +131,6 @@ def get_current_initial_message():
     if "current_initial_message" not in st.session_state:
         st.session_state.current_initial_message = load_initial_message(INITIAL_FILE)
     return st.session_state.current_initial_message
-
-# Streamlit config and background
-st.set_page_config(page_title="Dialogos BNE", page_icon="🦙", layout="centered")
-
 
 def _ollama_get(url, timeout=5):
     return requests.get(url, timeout=timeout)

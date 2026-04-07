@@ -139,7 +139,7 @@ Das Admin-Passwort wird über **Streamlit Secrets** verwaltet. Erstelle die Date
 value = "dein-passwort"
 ```
 
-> **Hinweis:** Der `.streamlit/`-Ordner sollte nicht ins Repository eingecheckt werden (ggf. in `.gitignore` aufnehmen).
+> **Hinweis:** Der `.streamlit/`-Ordner ist bereits in `.gitignore` eingetragen und wird nicht ins Repository eingecheckt. Die Datei muss nach dem Klonen lokal neu erstellt werden.
 
 ---
 
@@ -181,5 +181,4 @@ OLLAMA_MODEL=llama3:70b LLM_MAX_TOKENS=1024 streamlit run app.py
 - **Ollama:** Der Ollama-Server muss laufen, bevor du die Anwendung startest.
 - **Modelle:** Die benötigten HuggingFace-Modelle müssen einmalig mit `python setup_models.py` heruntergeladen werden.
 - **Datenbank:** Die Vektordatenbank wird beim ersten Start automatisch aus den Dateien im `docs`-Ordner erstellt und in `.chroma/` gespeichert. Neue Dokumente können entweder manuell in `docs/` abgelegt (dann App neu starten) oder direkt über das Admin-Panel hochgeladen werden (Datenbank wird dann automatisch neu aufgebaut).
-- **Admin-Panel:** Über die Sidebar kann der System-Prompt und die Startnachricht live bearbeitet sowie die Zugriffsanzahl eingesehen werden. Außerdem können PDF-, TXT- und DOCX-Dateien direkt hochgeladen werden — bestehende Dateien gleichen Namens werden überschrieben und die Vektordatenbank wird automatisch neu aufgebaut. Das Passwort wird in `.streamlit/secrets.toml` konfiguriert (siehe Schritt 6).
-- **Unterstützte Dokumentformate:** PDF, TXT und DOCX.
+- **Admin-Panel:** Über die Sidebar kann der System-Prompt und die Startnachricht live bearbeitet sowie die Zugriffsanzahl eingesehen werden. Außerdem können PDF-, TXT- und DOCX-Dateien direkt hochgeladen werden — bestehende Dateien gleichen Namens werden überschrieben und die 
