@@ -52,8 +52,7 @@ _model.max_seq_length = 256
 # Cross-encoder (optional) is heavy—lazy init
 _reranker_lock = threading.Lock()
 _reranker = None
-def is_ce_loaded() -> bool:
-    return _reranker is not None
+
 # -------------------- Fast PDF → text (no disk writes) --------------------
 def _pdf_to_text_one(pdf_path: Path) -> tuple[str, dict]:
     """Extract text from a single PDF file into memory (no temp .txt)."""
@@ -116,13 +115,11 @@ def load_all_texts(in_folder: Path) -> tuple[list[str], list[dict]]:
                     texts.append(text)
                     metas.append(meta)
 
-    # Fast sequential for small .txt files
     for p in txts:
         text, meta = _txt_to_text_one(p)
         texts.append(text)
         metas.append(meta)
 
-    # Fast sequential for .docx files
     for p in docx_files:
         text, meta = _docx_to_text_one(p)
         texts.append(text)
@@ -172,7 +169,7 @@ def retrieve_candidates(queries, top_k_per_query=5):
     if isinstance(queries, str):
         queries = [queries]
     for q in queries:
-        q_emb = embed_texts([q])  # uses normalized vec
+        q_emb = embed_texts([q])
         res = _collection.query(
             query_embeddings=q_emb.tolist(),
             n_results=top_k_per_query,
@@ -206,15 +203,11 @@ def _should_use_ce(cands, topk=5, top1_sim_thresh=0.82, gap_thresh=0.05, std_thr
     top1, top2 = sims[0], sims[1]
     gap = top1 - top2
     if top1 >= top1_sim_thresh and gap >= gap_thresh:
-        print("no ce")
         return False  # confident hit -> skip CE
     # If the top-k are very similar to each other, CE can help
-    import numpy as _np
-    if _np.std(sims) <= std_thresh:
-        print("ce")
+    if np.std(sims) <= std_thresh:
         return True
     # Default: run CE for safety on borderline cases
-    print("default ce")
     return True
 
 def ensure_reranker_loaded():
@@ -237,13 +230,13 @@ def rerank(query: str, candidates, top_k=5, enable=True):
         return candidates[:top_k]
     ensure_reranker_loaded()
     pairs = [(query, c["doc"]) for c in candidates]
-    scores = _reranker.predict(pairs)  # batched internally
+    scores = _reranker.predict(pairs)
     order = np.argsort(scores)[::-1]
     return [{**candidates[i], "score": float(scores[i])} for i in order[:top_k]]
 
 def build_context(
     query: str,
-    variants=0,                # SPEEDUP: default 0 (no rewrites)
+    variants=0,                # unused – reserved for future query rewriting
     first_stage_k=8,           # pull a few more, still cheap
     final_k=5,
     max_chars_per_passage=700,
@@ -277,7 +270,7 @@ def warmup(load_ce: bool = True):
         _collection.query(query_embeddings=_[:1].tolist(), n_results=1, include=["documents"])
     except Exception:
         pass
-    # 3) Optionally warm cross-encoder --> Not necessary anymore --> always true rn
+    # 3) Warm cross-encoder
     if load_ce:
         ensure_reranker_loaded()
         try:
@@ -285,8 +278,7 @@ def warmup(load_ce: bool = True):
         except Exception:
             pass
     if device == "cuda":
-        import torch as _torch
-        _torch.cuda.synchronize()
+        torch.cuda.synchronize()
     return True
 
 def start_DB(in_folder: Path):
@@ -295,32 +287,21 @@ def start_DB(in_folder: Path):
         if _db_ready:
             return
     if not os.listdir(folder_path):
-        print("Folder is empty")
         try:
             _client.delete_collection(name="my_docs")
         except Exception:
             pass
-        global _collection
         _collection = _client.get_or_create_collection(name="my_docs")
-        try:
-            _client.persist()
-        except Exception:
-            pass
     else:
-        print("Folder is not empty")
-        texts, metas = load_all_texts(in_folder)  # parallel PDFs, no .txt writes
+        texts, metas = load_all_texts(in_folder)
         chunk_texts, chunk_metas, ids = chunk_documents(texts, metas)
-        embeddings = embed_texts(chunk_texts)  # big batches, normalized
+        embeddings = embed_texts(chunk_texts)
         _collection.upsert(
             ids=ids,
             documents=chunk_texts,
             metadatas=chunk_metas,
             embeddings=embeddings,
         )
-        try:
-            _client.persist()
-        except Exception:
-            pass
     _db_ready = True
 
 def rebuild_DB(in_folder: Path):
