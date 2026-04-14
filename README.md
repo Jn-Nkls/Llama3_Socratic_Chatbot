@@ -25,6 +25,8 @@ Die Ordnerstruktur ist wie folgt aufgebaut:
 - **docs/**: Hier werden alle relevanten **PDF-, TXT- und DOCX-Dateien** abgelegt, die als Wissensbasis für den Chatbot dienen.
 - **images/**: Enthält Hintergrundbilder für das Frontend.
 - **models/**: Hier werden die benötigten Modelle für Embedding und Cross-Encoding lokal gespeichert.
+- **config.json**: Enthält den System-Prompt und die Startnachricht. Wird vom Admin-Panel beschrieben.
+- **access_count.txt**: Speichert die Anzahl der Seitenaufrufe.
 
 Die Anwendung funktioniert vollständig offline. Nutzende müssen lediglich Zugriff auf den Server haben, auf dem der Chatbot läuft.
 
@@ -37,7 +39,7 @@ Für die semantische Suche wird **ChromaDB** als Vektordatenbank verwendet. Die 
 Für die semantische Bewertung und das Reranking der Suchergebnisse kommt ein **Cross-Encoder** zum Einsatz. Ob der Cross-Encoder tatsächlich aufgerufen wird, entscheidet ein automatischer Heuristik-Check: Ist das beste Suchergebnis bereits eindeutig dominant, wird der Cross-Encoder übersprungen, um Latenz zu sparen.
 
 **Hinweis:**
-Wenn neue Dateien zur Wissensbasis hinzugefügt werden, muss der Chatbot einmal neu gestartet werden, damit die Datenbank aktualisiert wird.
+Neue Dokumente können entweder manuell in `docs/` abgelegt werden (dann App neu starten) oder direkt über das Admin-Panel hochgeladen werden — in beiden Fällen wird die Datenbank automatisch neu aufgebaut.
 
 ---
 
@@ -45,7 +47,9 @@ Wenn neue Dateien zur Wissensbasis hinzugefügt werden, muss der Chatbot einmal 
 
 Das Frontend basiert auf **Streamlit** und wird über die Datei `app.py` gesteuert. Die Benutzeroberfläche ist minimalistisch gehalten und fokussiert auf den Chatverlauf. Die Hintergrundgrafik kann individuell angepasst werden.
 
-Der System-Prompt und die Startnachricht sind in den Dateien `system_prompt_de.txt` bzw. `initial_message.txt` gespeichert und können jederzeit über das Admin-Panel in der Sidebar live bearbeitet werden, ohne die Anwendung neu starten zu müssen. Das KI-Modell (llama3) formuliert die Antworten entsprechend um und stellt gezielte Fragen, um den Lernprozess zu fördern.
+Der System-Prompt und die Startnachricht sind in `config.json` gespeichert und können jederzeit über das Admin-Panel in der Sidebar live bearbeitet werden, ohne die Anwendung neu starten zu müssen. Das KI-Modell (llama3) formuliert die Antworten entsprechend um und stellt gezielte Fragen, um den Lernprozess zu fördern.
+
+**Wichtig beim Bearbeiten des System-Prompts:** Der Platzhalter `{background_notes}` muss im Prompt enthalten bleiben. Er wird zur Laufzeit durch die relevanten Textpassagen aus der Wissensdatenbank ersetzt. Wird er entfernt, erhält das Modell keine Kontextinformationen mehr.
 
 ---
 
@@ -180,5 +184,7 @@ OLLAMA_MODEL=llama3:70b LLM_MAX_TOKENS=1024 streamlit run app.py
 - **PyTorch / GPU:** Für GPU-Beschleunigung installiere die passende CUDA-Version von [pytorch.org](https://pytorch.org/). Ohne GPU läuft die Anwendung auf der CPU.
 - **Ollama:** Der Ollama-Server muss laufen, bevor du die Anwendung startest.
 - **Modelle:** Die benötigten HuggingFace-Modelle müssen einmalig mit `python setup_models.py` heruntergeladen werden.
-- **Datenbank:** Die Vektordatenbank wird beim ersten Start automatisch aus den Dateien im `docs`-Ordner erstellt und in `.chroma/` gespeichert. Neue Dokumente können entweder manuell in `docs/` abgelegt (dann App neu starten) oder direkt über das Admin-Panel hochgeladen werden (Datenbank wird dann automatisch neu aufgebaut).
-- **Admin-Panel:** Über die Sidebar kann der System-Prompt und die Startnachricht live bearbeitet sowie die Zugriffsanzahl eingesehen werden. Außerdem können PDF-, TXT- und DOCX-Dateien direkt hochgeladen werden — bestehende Dateien gleichen Namens werden überschrieben und die 
+- **Datenbank:** Die Vektordatenbank wird beim ersten Start automatisch aus den Dateien im `docs`-Ordner erstellt und in `.chroma/` gespeichert.
+- **Admin-Panel:** Über die Sidebar können System-Prompt und Startnachricht live bearbeitet, die Zugriffsanzahl eingesehen und angepasst sowie Dokumente hochgeladen oder gelöscht werden. Beim Hochladen und Löschen wird die Vektordatenbank automatisch neu aufgebaut. Bestehende Dateien gleichen Namens werden beim Upload überschrieben. Die maximale Dateigröße pro Upload beträgt 20 MB. Das Passwort wird in `.streamlit/secrets.toml` konfiguriert (siehe Schritt 6).
+- **System-Prompt:** Der Platzhalter `{background_notes}` muss im System-Prompt enthalten bleiben. Er wird zur Laufzeit durch die Retrievalergebnisse ersetzt.
+- **Unterstützte Dokumentformate:** PDF, TXT und DOCX.
